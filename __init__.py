@@ -1,14 +1,39 @@
 import bpy  # type: ignore
+from bpy.props import BoolProperty, PointerProperty
 
 # preferences
 from .preferences import Sample_Preferences
 
 # Operators
 from .operators.OBJECT_OT_Sample import OBJECT_OT_Sample
-from .operators.DUMMY_OT_DummyOperator import DUMMY_OT_DummyOperator
+from .operators.OBJECT_OT_Export import OBJECT_OT_Export
+from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
 
 # panels
 from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
+
+
+class ExportHookSettings(bpy.types.PropertyGroup):
+    enable_export_hook: BoolProperty(
+        name="Enable Export Hook",
+        description="Toggle whether USD export runs automatically after saving the blend file.",
+        default=False,
+    )
+
+
+@bpy.app.handlers.persistent
+def export_usd_on_save(dummy):
+    if not bpy.data.filepath:
+        return
+
+    scene = bpy.context.scene
+    if not scene or not getattr(scene, "export_hook_settings", None):
+        return
+
+    if not scene.export_hook_settings.enable_export_hook:
+        return
+
+    bpy.ops.my_addon.export_usd()
 
 
 # reading values such as name, version and more from toml so there is no need to change information in two places
@@ -52,9 +77,12 @@ bl_info = {
 classes = [
     # preferences
     Sample_Preferences,
+    # property groups:
+    ExportHookSettings,
     # operators:
     OBJECT_OT_Sample,
-    DUMMY_OT_DummyOperator,
+    OBJECT_OT_Export,
+    OBJECT_OT_ExportUSD,
     # panels:
     VIEW3D_PT_UI_Sample,
 ]
@@ -63,9 +91,16 @@ classes = [
 def register():
     for i in classes:
         bpy.utils.register_class(i)
+    bpy.types.Scene.export_hook_settings = PointerProperty(type=ExportHookSettings)
+    if export_usd_on_save not in bpy.app.handlers.save_post:
+        bpy.app.handlers.save_post.append(export_usd_on_save)
 
 
 def unregister():
+    if export_usd_on_save in bpy.app.handlers.save_post:
+        bpy.app.handlers.save_post.remove(export_usd_on_save)
+    if hasattr(bpy.types.Scene, "export_hook_settings"):
+        del bpy.types.Scene.export_hook_settings
     for i in reversed(classes):
         bpy.utils.unregister_class(i)
 

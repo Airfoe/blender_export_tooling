@@ -1,7 +1,7 @@
 # i like to put values i need in multiple places here so i can change them in one place
 import bpy  # type: ignore
 import os
-import tomllib
+import tomllib # type: ignore
 
 
 # has to be all lowercase
@@ -9,7 +9,7 @@ bl_id_prefix = "my_addon"
 
 class AddonProperties:
     module_name = __package__
-    panel_category = "SamplePanel"
+    panel_category = "Airfoe"
 
 
 def get_manifest():
