@@ -6,7 +6,7 @@ from .preferences import Sample_Preferences
 
 # Operators
 from .operators.OBJECT_OT_Sample import OBJECT_OT_Sample
-from .operators.OBJECT_OT_Export import OBJECT_OT_Export
+from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
 
 # panels
@@ -14,11 +14,11 @@ from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
 
 
 class ExportHookSettings(bpy.types.PropertyGroup):
-    enable_export_hook: BoolProperty(
+    enable_export_usd_hook: BoolProperty(
         name="Enable Export Hook",
         description="Toggle whether USD export runs automatically after saving the blend file.",
         default=False,
-    )
+    )#type: ignore
 
 
 @bpy.app.handlers.persistent
@@ -30,7 +30,7 @@ def export_usd_on_save(dummy):
     if not scene or not getattr(scene, "export_hook_settings", None):
         return
 
-    if not scene.export_hook_settings.enable_export_hook:
+    if not scene.export_hook_settings.enable_export_usd_hook:
         return
 
     bpy.ops.airfoe.export_usd()
@@ -81,7 +81,7 @@ classes = [
     ExportHookSettings,
     # operators:
     OBJECT_OT_Sample,
-    OBJECT_OT_Export,
+    OBJECT_OT_ExportFBX,
     OBJECT_OT_ExportUSD,
     # panels:
     VIEW3D_PT_UI_Sample,

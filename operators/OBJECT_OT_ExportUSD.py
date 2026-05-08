@@ -1,7 +1,7 @@
 import bpy  # type: ignore
 from ..constants import get_operator
 from pathlib import Path
-from ..helpers import export_USD
+from ..helpers.usd_helpers import export_USD
 
 class OBJECT_OT_ExportUSD(bpy.types.Operator):
     bl_idname = get_operator("export_usd")

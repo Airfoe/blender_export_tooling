@@ -1,6 +1,6 @@
 import bpy  # type: ignore
 from ..constants import AddonProperties
-from ..operators.OBJECT_OT_Export import OBJECT_OT_Export
+from ..operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from ..operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
 
 class VIEW3D_PT_UI_Sample(bpy.types.Panel):
@@ -11,17 +11,32 @@ class VIEW3D_PT_UI_Sample(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+
+
+        ################################
+        ## FBX Export
+        ################################
+
         box = layout.box()
+        box.label(text="Export Static Mesh")
         column = box.column(align=True)
         column.scale_y = 1.5
-        single = column.operator(OBJECT_OT_Export.bl_idname, text="Export Selected Individually", icon="EXPORT")
+        single = column.operator(OBJECT_OT_ExportFBX.bl_idname, text=f"Export as ({len(context.selected_objects)}) Files", icon="EXPORT")
         single.grouped = False
         single.selected = True
 
-        grouped = column.operator(OBJECT_OT_Export.bl_idname, text="Export Selected as group", icon="EXPORT")
+        grouped = column.operator(OBJECT_OT_ExportFBX.bl_idname, text="Export Selected as group", icon="EXPORT")
         grouped.grouped = True
         grouped.selected = True
 
-        box.prop(context.scene.export_hook_settings, "enable_export_hook", toggle=True, icon="HOOK")
 
-        usd = column.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export USD", icon="EXPORT")
+        ################################
+        ## USD Export
+        ################################
+
+        box = layout.box()
+        box.label(text="Export Scene")
+        column = box.column(align=True)
+        column.scale_y = 1.5
+        column.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export Scene", icon="EXPORT")
+        column.prop(context.scene.export_hook_settings, "enable_export_usd_hook", text = "Export Scene on save", toggle=True, icon="HOOK")
