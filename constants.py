@@ -5,7 +5,7 @@ import tomllib # type: ignore
 
 
 # has to be all lowercase
-bl_id_prefix = "my_addon"
+bl_id_prefix = "airfoe"
 
 class AddonProperties:
     module_name = __package__
