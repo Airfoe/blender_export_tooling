@@ -1,0 +1,24 @@
+name: Build & Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_call:
+    secrets:
+      PUSH_TOKEN:
+        required: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      
+      - uses: fxnarji/deploy_blender_addon@v3
+        with:
+          blender-version: "5.1.1"
+          target-repo: "airfoe/extensions"
+          token: ${{ secrets.PUSH_TOKEN }}
