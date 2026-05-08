@@ -33,7 +33,7 @@ def export_usd_on_save(dummy):
     if not scene.export_hook_settings.enable_export_hook:
         return
 
-    bpy.ops.my_addon.export_usd()
+    bpy.ops.airfoe.export_usd()
 
 
 # reading values such as name, version and more from toml so there is no need to change information in two places
@@ -65,8 +65,8 @@ def load_manifest_info():
 blender_manifest = load_manifest_info()
 bl_info = {
     "name": blender_manifest["name"],
-    "description": "Adds RIG UI for Supported Rigs",
-    "author": "Your Name",
+    "description": "Tooling for Airfoe",
+    "author": "Fxnarji",
     "version": blender_manifest["version"],
     "blender": blender_manifest["blender"],
     "location": "Npanel",
