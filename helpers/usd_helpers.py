@@ -84,11 +84,13 @@ def export_USD(name):
         meters_per_unit=100,
     )
 
+
+def send_usd_reload_request():
     import requests
     try:
-        requests.post("http://127.0.0.1:5000/reload")
+        requests.post("http://127.0.0.1:5000/reload_usd")
     except requests.exceptions.ConnectionError:
         print("Could not connect to Unreal Engine listener. Make sure Unreal Engine is running and the listener is set up correctly.")
 
-def validate_scene_hirarchy():
+def usd_validator():
     pass

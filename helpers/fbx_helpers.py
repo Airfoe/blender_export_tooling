@@ -67,15 +67,38 @@ def FBX_ExportOperation(name, selected=False):
         axis_forward='X', 
         axis_up='Z'
         )
+    
+    send_fbx_reload_request(str(export_path), generate_content_path(str(export_path)))
 
 
-def send_fbx_reload_request(export_path):
+def send_fbx_reload_request(filepath, content_path):
     import requests
     try:
-        requests.post("http://127.0.0.1:5000/reload_fbx", json={"filepath": str(export_path)})
-    except requests.exceptions.ConnectionError:
-        print("Could not connect to Unreal Engine listener. Make sure Unreal Engine is running and the listener is set up correctly.")
+        response = requests.post(
+            f"http://127.0.0.1:5000/import_fbx",
+            json={
+                "filepath": filepath,
+                "content_path": content_path
+            }
+        )
+
+        print("Status:", response.status_code)
+        print("Response:", response.json())
+
+    except requests.exceptions.ConnectionError as e:
+        print("Connection error:", e)
 
 def fbx_validator():
     return True
     pass
+
+def generate_content_path(filepath):
+    import os
+    if not filepath:
+        bpy.context.window_manager.report({"ERROR"}, "Please save the blend file before exporting.")
+        return None
+
+    content_prefix = "/Game/03-Art"
+    suffix = filepath.split("3D")[1]
+    suffix_folder = os.path.dirname(suffix)
+    return os.path.join(content_prefix, suffix_folder)

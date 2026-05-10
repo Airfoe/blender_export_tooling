@@ -34,6 +34,8 @@ def export_usd_on_save(dummy):
         return
 
     bpy.ops.airfoe.export_usd()
+    from .helpers.usd_helpers import send_usd_reload_request
+    send_usd_reload_request()
 
 
 # reading values such as name, version and more from toml so there is no need to change information in two places
