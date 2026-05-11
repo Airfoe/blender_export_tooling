@@ -10,7 +10,7 @@ from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
 from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
 from .operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
-
+from .operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
 # panels
 from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
 
@@ -51,11 +51,19 @@ def export_usd_on_save(dummy):
 
     if not scene.export_hook_settings.enable_export_usd_hook:
         return
+    
+    from .helpers.usd_helpers import usd_validator
 
-    bpy.ops.airfoe.export_usd()
+    success = usd_validator(bpy.context)
+    print("is scene valid?", success)
+    if success:
+        bpy.ops.airfoe.export_usd()
+        from .helpers.usd_helpers import send_usd_reload_request
+        send_usd_reload_request()
+    else:
+        bpy.ops.airfoe.validate_usd('INVOKE_DEFAULT')
 
-    from .helpers.usd_helpers import send_usd_reload_request
-    send_usd_reload_request()
+
 
 
 # ---------------------------------------------------------
@@ -79,6 +87,7 @@ classes = [
     OBJECT_OT_ExportUSD,
     OBJECT_OT_SelectObject,
     OBJECT_OT_FixWrongPurpose,
+    OBJECT_OT_FixWrongDataName,
 
     # panels
     VIEW3D_PT_UI_Sample,

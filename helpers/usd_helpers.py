@@ -2,6 +2,7 @@ import bpy # type: ignore
 from pathlib import Path
 from time import sleep
 from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
+import bmesh #type: ignore
 
 def export_USD(name):
     filepath = bpy.data.filepath
@@ -125,71 +126,80 @@ def usd_validator(context):
     cache.missing_material.clear()
     cache.concave_colliders.clear()
     cache.wrong_purposes.clear()
+    cache.wrong_data_names.clear()
+
+    scene_valid = True
 
     # ---------------------------------------
     # SCAN SCENE
     # ---------------------------------------
     for obj in bpy.data.objects:
 
-        if obj.type != 'MESH':
-            continue
+        if obj.type == 'MESH':
+            if needs_collision(obj):
 
-        # -----------------------------------
-        # Missing collision
-        # -----------------------------------
-        if needs_collision(obj):
-
-            item = cache.missing_collision.add()
-            item.type = "missing_collision"
-            item.object_name = obj.name
-            item.expected = "collision mesh"
-            item.found = ""
-            item.message = f"{obj.name} is missing collision mesh"
-            item.level = "WARNING"
-
-        # -----------------------------------
-        # Missing material
-        # -----------------------------------
-        if needs_material(obj):
-
-            item = cache.missing_material.add()
-            item.type = "missing_material"
-            item.object_name = obj.name
-            item.expected = "material slot"
-            item.found = "none"
-            item.message = f"{obj.name} has no material"
-            item.level = "WARNING"
-
-        # -----------------------------------
-        # Collision checks
-        # -----------------------------------
-        if is_collision_mesh(obj):
-
-            if not is_convex(obj):
-
-                item = cache.concave_colliders.add()
-                item.type = "concave_collision"
+                item = cache.missing_collision.add()
+                item.type = "missing_collision"
                 item.object_name = obj.name
-                item.expected = "convex mesh"
-                item.found = "concave mesh"
-                item.message = f"{obj.name} collision is not convex"
-                item.level = "ERROR"
+                item.expected = "collision mesh"
+                item.found = ""
+                item.message = f"{obj.name} is missing collision mesh"
+                item.level = "WARNING"
 
-            purpose = obj.get("purpose", "")
+            if needs_material(obj):
 
-            if purpose != "proxy":
-                item = cache.wrong_purposes.add()
-                item.type = "wrong_purpose"
+                item = cache.missing_material.add()
+                item.type = "missing_material"
                 item.object_name = obj.name
-                item.expected = "proxy"
-                item.found = purpose
-                item.message = f"{obj.name} has wrong purpose: {purpose}"
-                item.level = "ERROR"
+                item.expected = "material slot"
+                item.found = "none"
+                item.message = f"{obj.name} has no material"
+                item.level = "WARNING"
 
-                from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
-                item.fix_operator = OBJECT_OT_FixWrongPurpose.bl_idname
+            if is_collision_mesh(obj):
+                conv = convexity(obj)
+                if conv < 0.99:
+                    item = cache.concave_colliders.add()
+                    item.type = "concave_collision"
+                    item.object_name = obj.name
+                    item.expected = "< 0.95"
+                    item.found = f"{conv:.23f}"
+                    item.message = f"{obj.name} convexity is {conv:.2f}"
+                    item.level = "ERROR"
+                    scene_valid = False
+
+                purpose = obj.get("purpose", "")
+
+                if purpose != "proxy":
+                    item = cache.wrong_purposes.add()
+                    item.type = "wrong_purpose"
+                    item.object_name = obj.name
+                    item.expected = "proxy"
+                    item.found = purpose
+                    item.message = f"{obj.name} has wrong purpose: {purpose}"
+                    item.level = "ERROR"
+
+                    from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
+                    item.fix_operator = OBJECT_OT_FixWrongPurpose.bl_idname
+                    item.fix_object_name = obj.name
+                    item.fix_data = "proxy"
+                    scene_valid = False
+
+            if has_wrong_name(obj, "GEO"):
+                from ..operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
+                print(f"{obj.name} has wrong data name: {obj.data.name if obj.data else 'no data'}")
+                item = cache.wrong_data_names.add()
+                item.type = "wrong_name"
+                item.object_name = obj.name
+                item.expected = "GEO_ prefix for geometry objects"
+                item.found = "no GEO_ prefix"
+                item.message = f"{obj.name} does not follow naming convention. Expected name to start with GEO_"
+                item.level = "WARNING"
+                item.fix_operator = OBJECT_OT_FixWrongDataName.bl_idname
                 item.fix_object_name = obj.name
-                item.fix_new_purpose = "proxy"
+                item.fix_data = "GEO"
+    
+    return scene_valid
 
 def needs_collision(obj):
     name = obj.name.lower()
@@ -214,7 +224,43 @@ def is_collision_mesh(obj):
         return True
     return False
 
-def is_convex(obj):
-    # Placeholder function to determine if a mesh is convex
-    # In a real implementation, you would analyze the mesh geometry here
-    return True
+def has_wrong_name(obj, prefix_data):
+    name = obj.name.lower()
+    data_name = obj.data.name.lower() if obj.data else ""
+    result = data_name.startswith(f"{prefix_data.lower()}_{name}")
+    print(name, data_name, result)
+    return not result
+
+
+def convexity(obj):
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.transform(obj.matrix_world)
+    
+    original_volume = abs(bm.calc_volume())
+
+    hull_bm = bm.copy()
+
+    bmesh.ops.delete(
+        hull_bm, 
+        geom=hull_bm.faces[:] + hull_bm.edges[:], 
+        context='FACES_ONLY'
+    )
+
+    bmesh.ops.convex_hull(
+        hull_bm,
+        input=hull_bm.verts
+    )
+
+    hull_bm.normal_update()
+    hull_volume = abs(hull_bm.calc_volume())
+
+    bm.free()
+    hull_bm.free()
+
+    # womp womp, stopid calculator cant divide by 0
+    if hull_volume == 0:
+        return 0
+        
+    print(original_volume / hull_volume)
+    return original_volume / hull_volume

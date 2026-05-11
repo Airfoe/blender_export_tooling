@@ -41,8 +41,6 @@ class VIEW3D_PT_UI_Sample(bpy.types.Panel):
         column = box.column(align=True)
         column.scale_y = 1.5
         column.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export Scene", icon="EXPORT")
-        column.prop(context.scene.export_hook_settings, "enable_export_usd_hook", text = "Export Scene on save", toggle=True, icon="HOOK")
-
-        layout.operator(OBJECT_OT_ValidateUSD.bl_idname, text="Sample Operator", icon="INFO")
-        layout.operator(OBJECT_OT_FixWrongPurpose.bl_idname, text="Fix Wrong Purpose", icon="INFO")
+        column.operator(OBJECT_OT_ValidateUSD.bl_idname, text=" Validate Scene", icon="INFO")
+        box.prop(context.scene.export_hook_settings, "enable_export_usd_hook", text = "Export Scene on save", toggle=True, icon="HOOK")
 

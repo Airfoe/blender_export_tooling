@@ -1,10 +1,10 @@
-import bpy # type: ignore
+import bpy #type: ignore
 from ..constants import get_operator
 
-class OBJECT_OT_FixWrongPurpose(bpy.types.Operator):
-    bl_idname = get_operator("fix_wrong_purpose")
-    bl_label = "Fix Wrong Purpose"
-    bl_description = "Attempt to fix objects with wrong purposes"
+class OBJECT_OT_FixWrongDataName(bpy.types.Operator):
+    bl_idname = get_operator("fix_wrong_data_name")
+    bl_label = "Fix Wrong Data Name"
+    bl_description = "Attempt to fix objects with wrong data names"
     bl_options = {"REGISTER", "UNDO"}
 
     fix_data: bpy.props.StringProperty() #type:ignore
@@ -12,8 +12,8 @@ class OBJECT_OT_FixWrongPurpose(bpy.types.Operator):
 
     def execute(self, context):
         obj = bpy.data.objects.get(self.object_name)
-        if obj:
-            obj["purpose"] = self.fix_data
+        if obj and obj.data:
+            obj.data.name = f"{self.fix_data}_{obj.name}"
 
         from ..helpers.usd_helpers import usd_validator
         usd_validator(context)

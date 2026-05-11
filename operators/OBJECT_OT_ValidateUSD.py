@@ -14,8 +14,7 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
     validation_results = None
 
     def invoke(self, context, event):
-        self.validation_results = usd_validator(context)
-        print(self.validation_results)
+        usd_validator(context)
         return context.window_manager.invoke_props_dialog(
             self,
             width=600
@@ -70,6 +69,14 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
             icon="ERROR"
         )
 
+        self.draw_error_section(
+            context=context,
+            title="Wrong Data Names",
+            toggle_prop="ShowWrongDataName",
+            items=cache.wrong_data_names,
+            icon="INFO"
+        )
+
     def draw_error_section(self,context,title,toggle_prop,items,icon="ERROR"):
         if not items:
             return
@@ -77,13 +84,19 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
         settings = context.scene.usd_validator_settings
         box = self.layout.box()
 
+
         # -----------------------------------
         # Header
         # -----------------------------------
 
-        row = box.row(align=True)
         is_open = getattr(settings, toggle_prop)
 
+        
+        for item in items:
+            if item.level == "ERROR" and not is_open:
+                box.alert = True
+
+        row = box.row(align=True)
         row.prop(
             settings,
             toggle_prop,
@@ -103,7 +116,8 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
         content = box.column(align=True)
 
         for item in items:
-            row = content.row(align=True)
+            if item.level == "ERROR":
+                content.alert = True
 
             # -----------------------------------
             # MESSAGE + SEVERITY
@@ -112,13 +126,16 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
             icon_enum = {
                 "INFO": "INFO",
                 "ERROR": "CANCEL",
-                "WARNING": "ERROR"
+                "WARNING": "DISCLOSURE_TRI_RIGHT"
             }
 
+            row = content.row(align=True)
             row.label(
                 text=item.message,
                 icon=icon_enum.get(item.level, "ERROR")
             )
+
+
 
             # -----------------------------------
             # SELECT OBJECT
@@ -145,5 +162,5 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
                 if item.fix_object_name:
                     setattr(op, "object_name", item.fix_object_name)
 
-                if item.fix_new_purpose:
-                    setattr(op, "new_purpose", item.fix_new_purpose)
+                if item.fix_data:
+                    setattr(op, "fix_data", item.fix_data)
