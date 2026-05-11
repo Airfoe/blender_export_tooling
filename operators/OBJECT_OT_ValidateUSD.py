@@ -15,6 +15,7 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
 
     def invoke(self, context, event):
         self.validation_results = usd_validator(context)
+        print(self.validation_results)
         return context.window_manager.invoke_props_dialog(
             self,
             width=600
@@ -25,20 +26,23 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-
+        settings = context.scene.usd_validator_settings
+        cache = settings.cache
         header_box = layout.box()
         header_box.label(
             text="USD Validation Report",
             icon="INFO"
         )
 
-        results = self.validation_results
+        # ---------------------------------------
+        # SECTIONS
+        # ---------------------------------------
 
         self.draw_error_section(
             context=context,
             title="Objects Missing Collisions",
-            toggle_prop="ShowMissingCollisions",
-            items=results.get("missing_collisions", []),
+            toggle_prop="ShowMissingCollision",
+            items=cache.missing_collision,
             icon="MESH_CUBE"
         )
 
@@ -46,30 +50,27 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
             context=context,
             title="Objects Missing Materials",
             toggle_prop="ShowMissingMaterial",
-            items=results.get("missing_material", []),
+            items=cache.missing_material,
             icon="MATERIAL"
         )
 
         self.draw_error_section(
             context=context,
-            title="Hierarchy Errors",
-            toggle_prop="ShowHierarchyErrors",
-            items=results.get("hierarchy_errors", []),
-            icon="OUTLINER_COLLECTION"
+            title="Concave Colliders",
+            toggle_prop="ShowConcaveCollider",
+            items=cache.concave_colliders,
+            icon="MOD_PHYSICS"
         )
 
-    # ---------------------------------------------------------
-    # GENERIC ERROR SECTION
-    # ---------------------------------------------------------
+        self.draw_error_section(
+            context=context,
+            title="Wrong Purposes",
+            toggle_prop="ShowWrongPurpose",
+            items=cache.wrong_purposes,
+            icon="ERROR"
+        )
 
-    def draw_error_section(
-        self,
-        context,
-        title,
-        toggle_prop,
-        items,
-        icon="ERROR"
-    ):
+    def draw_error_section(self,context,title,toggle_prop,items,icon="ERROR"):
         if not items:
             return
 
@@ -96,9 +97,6 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
             icon=icon
         )
 
-        # -----------------------------------
-        # Expanded Contents
-        # -----------------------------------
 
         if not is_open:
             return
@@ -108,42 +106,44 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
             row = content.row(align=True)
 
             # -----------------------------------
-            # OBJECT ITEMS
+            # MESSAGE + SEVERITY
             # -----------------------------------
-            if isinstance(item, bpy.types.Object):
-                row.label(
-                    text=item.name,
-                    icon="ERROR"
-                )
 
-                row.operator(
-                    OBJECT_OT_SelectObject.bl_idname,
-                    text="",
-                    icon="RESTRICT_SELECT_OFF"
-                ).object_name = item.name
+            icon_enum = {
+                "INFO": "INFO",
+                "ERROR": "CANCEL",
+                "WARNING": "ERROR"
+            }
+
+            row.label(
+                text=item.message,
+                icon=icon_enum.get(item.level, "ERROR")
+            )
 
             # -----------------------------------
-            # DICTIONARY ITEMS
+            # SELECT OBJECT
             # -----------------------------------
-            elif isinstance(item, dict):
-                row.label(
-                    text=item.get("message", "Unknown Error"),
-                    icon="ERROR"
-                )
-
-                obj = item.get("object")
+            if item.object_name:
+                obj = bpy.data.objects.get(item.object_name)
                 if obj:
                     row.operator(
                         OBJECT_OT_SelectObject.bl_idname,
-                        text="",
+                        text="Select",
                         icon="RESTRICT_SELECT_OFF"
                     ).object_name = obj.name
 
             # -----------------------------------
-            # STRING ITEMS
+            # FIX BUTTON
             # -----------------------------------
-            else:
-                row.label(
-                    text=str(item),
-                    icon="ERROR"
+
+            if item.fix_operator:
+                op = row.operator(
+                    item.fix_operator,
+                    text="Fix",
+                    icon="CHECKMARK"
                 )
+                if item.fix_object_name:
+                    setattr(op, "object_name", item.fix_object_name)
+
+                if item.fix_new_purpose:
+                    setattr(op, "new_purpose", item.fix_new_purpose)

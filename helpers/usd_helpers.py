@@ -1,6 +1,7 @@
 import bpy # type: ignore
 from pathlib import Path
 from time import sleep
+from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
 
 def export_USD(name):
     filepath = bpy.data.filepath
@@ -87,26 +88,23 @@ def export_USD(name):
 
     usd_post_processing(export_path)
 
-
 def usd_post_processing(filepath):
     from pxr import Usd, UsdGeom #type: ignore
     stage = Usd.Stage.Open(str(filepath))
+
+    valid_purposes = {"default", "render", "proxy", "guide"}
 
     for prim in stage.Traverse():
         if prim.IsA(UsdGeom.Imageable):
 
             attr = prim.GetAttribute("userProperties:purpose")
-
             purpose = attr.Get() if attr and attr.HasAuthoredValue() else None
 
-            if purpose:
-                print("Found purpose:", purpose)
-
+            if purpose and purpose in valid_purposes:
                 imageable = UsdGeom.Imageable(prim)
                 imageable.CreatePurposeAttr().Set(purpose)
 
     stage.GetRootLayer().Save()
-
 
 def send_usd_reload_request():
     import requests
@@ -117,32 +115,81 @@ def send_usd_reload_request():
 
 def usd_validator(context):
 
-    missing_collision = []
-    missing_triangulation = []
-    missing_material = []
-    concave_collidors = []
+    settings = context.scene.usd_validator_settings
+    cache = settings.cache
 
+    # ---------------------------------------
+    # CLEAR OLD DATA
+    # ---------------------------------------
+    cache.missing_collision.clear()
+    cache.missing_material.clear()
+    cache.concave_colliders.clear()
+    cache.wrong_purposes.clear()
+
+    # ---------------------------------------
+    # SCAN SCENE
+    # ---------------------------------------
     for obj in bpy.data.objects:
-        if obj.type == 'MESH':
-            if needs_collision(obj):
-                missing_collision.append(obj)
-            
-            if needs_material(obj):
-                missing_material.append(obj)
 
-            if is_collision_mesh(obj) and not is_convex(obj):
-                concave_collidors.append(obj)
+        if obj.type != 'MESH':
+            continue
 
-            
+        # -----------------------------------
+        # Missing collision
+        # -----------------------------------
+        if needs_collision(obj):
 
-    return_dict = {
-        "missing_triangulation": missing_triangulation,
-        "faulty_collisions": len(bpy.data.meshes),
-        "missing_collisions": missing_collision,
-        "missing_material": missing_material,
-        "concave_collisions": concave_collidors,
-    }
-    return return_dict
+            item = cache.missing_collision.add()
+            item.type = "missing_collision"
+            item.object_name = obj.name
+            item.expected = "collision mesh"
+            item.found = ""
+            item.message = f"{obj.name} is missing collision mesh"
+            item.level = "WARNING"
+
+        # -----------------------------------
+        # Missing material
+        # -----------------------------------
+        if needs_material(obj):
+
+            item = cache.missing_material.add()
+            item.type = "missing_material"
+            item.object_name = obj.name
+            item.expected = "material slot"
+            item.found = "none"
+            item.message = f"{obj.name} has no material"
+            item.level = "WARNING"
+
+        # -----------------------------------
+        # Collision checks
+        # -----------------------------------
+        if is_collision_mesh(obj):
+
+            if not is_convex(obj):
+
+                item = cache.concave_colliders.add()
+                item.type = "concave_collision"
+                item.object_name = obj.name
+                item.expected = "convex mesh"
+                item.found = "concave mesh"
+                item.message = f"{obj.name} collision is not convex"
+                item.level = "ERROR"
+
+            purpose = obj.get("purpose", "")
+
+            if purpose != "proxy":
+                item = cache.wrong_purposes.add()
+                item.type = "wrong_purpose"
+                item.object_name = obj.name
+                item.expected = "proxy"
+                item.found = purpose
+                item.message = f"{obj.name} has wrong purpose: {purpose}"
+                item.level = "ERROR"
+
+                from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
+                item.fix_operator = OBJECT_OT_FixWrongPurpose.bl_idname
+                item.fix_object_name = obj.name
+                item.fix_new_purpose = "proxy"
 
 def needs_collision(obj):
     name = obj.name.lower()
@@ -160,7 +207,6 @@ def needs_material(obj):
     if len(obj.material_slots) == 0:
         return True
     return False
-
 
 def is_collision_mesh(obj):
     name = obj.name.lower()
