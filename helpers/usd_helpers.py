@@ -57,7 +57,7 @@ def export_USD(name):
         accessibility_label='', 
         accessibility_description='', 
         author_blender_name=True, 
-        convert_world_material=True, 
+        convert_world_material=False, 
         allow_unicode=True, 
         
         export_animation=False, 
