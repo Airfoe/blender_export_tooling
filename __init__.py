@@ -5,14 +5,15 @@ from bpy.props import BoolProperty, PointerProperty
 from .preferences import Sample_Preferences
 
 # Operators
-from .operators.OBJECT_OT_Sample import OBJECT_OT_Sample
+from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
 from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
+from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
 
 # panels
 from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
 
-
+from .ValidatorPropertyGroup import ValidatorSettings
 class ExportHookSettings(bpy.types.PropertyGroup):
     enable_export_usd_hook: BoolProperty(
         name="Enable Export Hook",
@@ -81,10 +82,12 @@ classes = [
     Sample_Preferences,
     # property groups:
     ExportHookSettings,
+    ValidatorSettings,
     # operators:
-    OBJECT_OT_Sample,
+    OBJECT_OT_ValidateUSD,
     OBJECT_OT_ExportFBX,
     OBJECT_OT_ExportUSD,
+    OBJECT_OT_SelectObject,
     # panels:
     VIEW3D_PT_UI_Sample,
 ]
@@ -94,6 +97,8 @@ def register():
     for i in classes:
         bpy.utils.register_class(i)
     bpy.types.Scene.export_hook_settings = PointerProperty(type=ExportHookSettings)
+    bpy.types.Scene.usd_validator_settings = PointerProperty(type=ValidatorSettings)
+
     if export_usd_on_save not in bpy.app.handlers.save_post:
         bpy.app.handlers.save_post.append(export_usd_on_save)
 
@@ -101,8 +106,12 @@ def register():
 def unregister():
     if export_usd_on_save in bpy.app.handlers.save_post:
         bpy.app.handlers.save_post.remove(export_usd_on_save)
+
     if hasattr(bpy.types.Scene, "export_hook_settings"):
         del bpy.types.Scene.export_hook_settings
+
+    if hasattr(bpy.types.Scene, "usd_validator_settings"):
+        del bpy.types.Scene.usd_validator_settings
     for i in reversed(classes):
         bpy.utils.unregister_class(i)
 

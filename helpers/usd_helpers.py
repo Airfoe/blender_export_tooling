@@ -1,12 +1,13 @@
 import bpy # type: ignore
 from pathlib import Path
+from time import sleep
 
 def export_USD(name):
     filepath = bpy.data.filepath
     if not filepath:
         bpy.context.window_manager.report({"ERROR"}, "Please save the blend file before exporting.")
         return
-    export_path = Path(filepath).parent.parent / "export" / f"{name}.usdc"
+    export_path = Path(filepath).parent.parent / "export" / f"{name}.usda"
     export_path.parent.mkdir(parents=True, exist_ok=True)
 
 
@@ -84,6 +85,28 @@ def export_USD(name):
         meters_per_unit=100,
     )
 
+    usd_post_processing(export_path)
+
+
+def usd_post_processing(filepath):
+    from pxr import Usd, UsdGeom #type: ignore
+    stage = Usd.Stage.Open(str(filepath))
+
+    for prim in stage.Traverse():
+        if prim.IsA(UsdGeom.Imageable):
+
+            attr = prim.GetAttribute("userProperties:purpose")
+
+            purpose = attr.Get() if attr and attr.HasAuthoredValue() else None
+
+            if purpose:
+                print("Found purpose:", purpose)
+
+                imageable = UsdGeom.Imageable(prim)
+                imageable.CreatePurposeAttr().Set(purpose)
+
+    stage.GetRootLayer().Save()
+
 
 def send_usd_reload_request():
     import requests
@@ -92,5 +115,60 @@ def send_usd_reload_request():
     except requests.exceptions.ConnectionError:
         print("Could not connect to Unreal Engine listener. Make sure Unreal Engine is running and the listener is set up correctly.")
 
-def usd_validator():
-    pass
+def usd_validator(context):
+
+    missing_collision = []
+    missing_triangulation = []
+    missing_material = []
+    concave_collidors = []
+
+    for obj in bpy.data.objects:
+        if obj.type == 'MESH':
+            if needs_collision(obj):
+                missing_collision.append(obj)
+            
+            if needs_material(obj):
+                missing_material.append(obj)
+
+            if is_collision_mesh(obj) and not is_convex(obj):
+                concave_collidors.append(obj)
+
+            
+
+    return_dict = {
+        "missing_triangulation": missing_triangulation,
+        "faulty_collisions": len(bpy.data.meshes),
+        "missing_collisions": missing_collision,
+        "missing_material": missing_material,
+        "concave_collisions": concave_collidors,
+    }
+    return return_dict
+
+def needs_collision(obj):
+    name = obj.name.lower()
+    if is_collision_mesh(obj):
+        return False
+    
+    for child in obj.children:
+        if child.name.lower().startswith(f"ucx_{name}") or child.name.lower().startswith(f"ubx_{name}") or child.name.lower().startswith(f"usp_{name}"):
+            return False
+    return True
+
+def needs_material(obj):
+    if is_collision_mesh(obj):
+        return False
+    if len(obj.material_slots) == 0:
+        return True
+    return False
+
+
+def is_collision_mesh(obj):
+    name = obj.name.lower()
+    if name.startswith(f"ucx_") or name.startswith(f"ubx_") or name.startswith(f"usp_"):
+        return True
+    return False
+
+def is_convex(obj):
+    # Placeholder function to determine if a mesh is convex
+    # In a real implementation, you would analyze the mesh geometry here
+    return True
