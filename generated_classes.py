@@ -1,0 +1,39 @@
+# AUTO-GENERATED FILE
+
+from .ValidatorPropertyGroup import USD_PG_ValidationItem
+from .ValidatorPropertyGroup import USD_PG_ValidatorCache
+from .ValidatorPropertyGroup import USD_PG_ValidatorSettings
+from .ValidatorPropertyGroup import USD_PG_ExportHookSettings
+from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
+from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
+from .operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
+from .operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
+from .operators.OBJECT_OT_MakeCollider import OBJECT_OT_MakeCollider
+from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
+from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
+from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
+from .panels.VIEW_3D_PT_SceneTools import VIEW3D_PT_SceneTools
+
+CLASSES = (
+
+#preferences
+
+#Property Groups
+USD_PG_ValidationItem,
+USD_PG_ValidatorCache,
+USD_PG_ValidatorSettings,
+USD_PG_ExportHookSettings,
+
+#Operators
+OBJECT_OT_ExportFBX,
+OBJECT_OT_ExportUSD,
+OBJECT_OT_FixWrongDataName,
+OBJECT_OT_FixWrongPurpose,
+OBJECT_OT_MakeCollider,
+OBJECT_OT_SelectObject,
+OBJECT_OT_ValidateUSD,
+
+#Panels
+VIEW3D_PT_UI_Sample,
+VIEW3D_PT_SceneTools,
+)

@@ -1,43 +1,9 @@
 import bpy  # type: ignore
 from bpy.props import BoolProperty, PointerProperty
 
-# preferences
-from .preferences import Sample_Preferences
+from .ValidatorPropertyGroup import USD_PG_ValidatorSettings, USD_PG_ExportHookSettings
+from .generated_classes import CLASSES
 
-# Operators
-from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
-from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
-from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
-from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
-from .operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
-from .operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
-# panels
-from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
-
-# property groups
-from .ValidatorPropertyGroup import (
-    USDValidationItem,
-    USDValidatorCache,
-    USDValidatorSettings
-)
-
-
-# ---------------------------------------------------------
-# ADDON SETTINGS (HOOK)
-# ---------------------------------------------------------
-
-class ExportHookSettings(bpy.types.PropertyGroup):
-
-    enable_export_usd_hook: BoolProperty(
-        name="Enable Export Hook",
-        description="Toggle whether USD export runs automatically after saving the blend file.",
-        default=False,
-    ) #type: ignore
-
-
-# ---------------------------------------------------------
-# SAVE HANDLER
-# ---------------------------------------------------------
 
 @bpy.app.handlers.persistent
 def export_usd_on_save(dummy):
@@ -64,51 +30,15 @@ def export_usd_on_save(dummy):
         bpy.ops.airfoe.validate_usd('INVOKE_DEFAULT')
 
 
-
-
-# ---------------------------------------------------------
-# CLASSES
-# ---------------------------------------------------------
-
-classes = [
-
-    # preferences
-    Sample_Preferences,
-
-    # property groups
-    USDValidationItem,
-    USDValidatorCache,
-    USDValidatorSettings,
-    ExportHookSettings,
-
-    # operators
-    OBJECT_OT_ValidateUSD,
-    OBJECT_OT_ExportFBX,
-    OBJECT_OT_ExportUSD,
-    OBJECT_OT_SelectObject,
-    OBJECT_OT_FixWrongPurpose,
-    OBJECT_OT_FixWrongDataName,
-
-    # panels
-    VIEW3D_PT_UI_Sample,
-]
-
-
-# ---------------------------------------------------------
-# REGISTER
-# ---------------------------------------------------------
-
 def register():
-
-    for cls in classes:
+    for cls in CLASSES:
         bpy.utils.register_class(cls)
-
     bpy.types.Scene.export_hook_settings = PointerProperty(
-        type=ExportHookSettings
+        type=USD_PG_ExportHookSettings
     )
 
     bpy.types.Scene.usd_validator_settings = PointerProperty(
-        type=USDValidatorSettings
+        type=USD_PG_ValidatorSettings
     )
 
     handlers = bpy.app.handlers.save_post
@@ -121,7 +51,6 @@ def register():
 # ---------------------------------------------------------
 
 def unregister():
-
     handlers = bpy.app.handlers.save_post
     while export_usd_on_save in handlers:
         handlers.remove(export_usd_on_save)
@@ -132,13 +61,8 @@ def unregister():
     if hasattr(bpy.types.Scene, "usd_validator_settings"):
         del bpy.types.Scene.usd_validator_settings
 
-    for cls in reversed(classes):
+    for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)
-
-
-# ---------------------------------------------------------
-# DEV ENTRY POINT
-# ---------------------------------------------------------
 
 if __name__ == "__main__":
     register()
