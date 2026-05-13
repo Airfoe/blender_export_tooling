@@ -18,7 +18,15 @@ class OBJECT_OT_MakeCollider(bpy.types.Operator):
 
     def execute(self, context):
         active_obj = context.active_object
-        for index, collider in enumerate (context.selected_objects):
+
+        # add existing colliders to fix .001 issues
+        old_and_new_colliders = []
+        old_and_new_colliders.extend(context.selected_objects)
+        for child in active_obj.children:
+            if child.name.startswith("UCX_"):
+                old_and_new_colliders.append(child)
+
+        for index, collider in enumerate(old_and_new_colliders):
             if collider == active_obj:
                 pass
             else:

@@ -10,6 +10,7 @@ from .operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
 from .operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
 from .operators.OBJECT_OT_Group import OBJECT_OT_Group
 from .operators.OBJECT_OT_MakeCollider import OBJECT_OT_MakeCollider
+from .operators.OBJECT_OT_MakeQuickCollision import OBJECT_OT_MakeQuickCollision
 from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
 from .operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
 from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
@@ -33,6 +34,7 @@ OBJECT_OT_FixWrongDataName,
 OBJECT_OT_FixWrongPurpose,
 OBJECT_OT_Group,
 OBJECT_OT_MakeCollider,
+OBJECT_OT_MakeQuickCollision,
 OBJECT_OT_SelectObject,
 OBJECT_OT_ShowColliders,
 OBJECT_OT_ValidateUSD,
