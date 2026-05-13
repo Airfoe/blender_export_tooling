@@ -135,6 +135,16 @@ def usd_validator(context):
     # ---------------------------------------
     for obj in bpy.data.objects:
 
+        if not obj:
+            continue
+
+        if obj.library:
+            continue
+
+        if obj.data and obj.data.library:
+            continue
+
+
         if obj.type == 'MESH':
             if needs_collision(obj):
 

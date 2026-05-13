@@ -13,6 +13,7 @@ class OBJECT_OT_SelectObject(bpy.types.Operator):
         current_mode = bpy.data.objects[self.object_name].select_get()
         if current_mode:
             bpy.data.objects[self.object_name].select_set(False)
+            context.active_objects = bpy.data.objects[self.object_name]
         else:
             bpy.data.objects[self.object_name].select_set(True)
         return {"FINISHED"}
