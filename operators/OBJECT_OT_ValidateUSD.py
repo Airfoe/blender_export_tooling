@@ -145,7 +145,7 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
                 if obj:
                     row.operator(
                         OBJECT_OT_SelectObject.bl_idname,
-                        text="Select",
+                        text="",
                         icon="RESTRICT_SELECT_OFF"
                     ).object_name = obj.name
 
@@ -156,7 +156,7 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
             if item.fix_operator:
                 op = row.operator(
                     item.fix_operator,
-                    text="Fix",
+                    text="",
                     icon="CHECKMARK"
                 )
                 if item.fix_object_name:

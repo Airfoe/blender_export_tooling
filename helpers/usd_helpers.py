@@ -92,9 +92,11 @@ def export_USD(name):
 def usd_post_processing(filepath):
     from pxr import Usd, UsdGeom #type: ignore
     stage = Usd.Stage.Open(str(filepath))
+    filename = filepath.name
 
     valid_purposes = {"default", "render", "proxy", "guide"}
 
+    # set purposes for colliders
     for prim in stage.Traverse():
         if prim.IsA(UsdGeom.Imageable):
 
@@ -207,7 +209,11 @@ def usd_validator(context):
                 item.level = "WARNING"
                 item.fix_operator = OBJECT_OT_FixWrongDataName.bl_idname
                 item.fix_object_name = obj.name
-                item.fix_data = "GEO"
+                if is_collision_mesh(obj):
+                    item.fix_data = "UXC"
+                else:
+                    item.fix_data = "GEO"
+                
     
     return scene_valid
 
@@ -237,9 +243,9 @@ def is_collision_mesh(obj):
 def has_wrong_name(obj, prefix_data):
     name = obj.name.lower()
     data_name = obj.data.name.lower() if obj.data else ""
-    result = data_name.startswith(f"{prefix_data.lower()}_{name}")
-    print(name, data_name, result)
-    return not result
+    false_geo_name = not data_name.startswith(f"{prefix_data.lower()}_{name}")
+    false_collider_name = not data_name.startswith(f"uxc_")
+    return false_geo_name or false_collider_name
 
 
 def convexity(obj):

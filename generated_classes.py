@@ -6,6 +6,7 @@ from .ValidatorPropertyGroup import USD_PG_ValidatorSettings
 from .ValidatorPropertyGroup import USD_PG_ExportHookSettings
 from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
+from .operators.OBJECT_OT_FixAllNames import OBJECT_OT_FixAllNames
 from .operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
 from .operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
 from .operators.OBJECT_OT_Group import OBJECT_OT_Group
@@ -30,6 +31,7 @@ USD_PG_ExportHookSettings,
 #Operators
 OBJECT_OT_ExportFBX,
 OBJECT_OT_ExportUSD,
+OBJECT_OT_FixAllNames,
 OBJECT_OT_FixWrongDataName,
 OBJECT_OT_FixWrongPurpose,
 OBJECT_OT_Group,
