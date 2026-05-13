@@ -9,7 +9,7 @@ def export_USD(name):
     if not filepath:
         bpy.context.window_manager.report({"ERROR"}, "Please save the blend file before exporting.")
         return
-    export_path = Path(filepath).parent.parent / "export" / f"{name}.usda"
+    export_path = Path(filepath).parent.parent / "export" / f"{name}.usdc"
     export_path.parent.mkdir(parents=True, exist_ok=True)
 
 

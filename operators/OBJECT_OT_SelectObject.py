@@ -9,7 +9,6 @@ class OBJECT_OT_SelectObject(bpy.types.Operator):
     object_name: bpy.props.StringProperty(default="") #type: ignore
 
     def execute(self, context):
-        # Example validator result
         current_mode = bpy.data.objects[self.object_name].select_get()
         if current_mode:
             bpy.data.objects[self.object_name].select_set(False)
