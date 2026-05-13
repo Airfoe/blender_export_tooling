@@ -8,23 +8,22 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        for obj in context.selected_objects:
-            self.make_collision(context,obj)
-
-
-
-        self.set_as_colliders(context)
+        parent_objects = [obj for obj in context.selected_objects]
+        for obj in parent_objects:
+            if obj.type != "MESH":
+                continue
+            collider = self.make_collision(context,obj)
+            self.set_as_colliders(context, obj, collider)
         
 
         return {"FINISHED"}
     
 
-    def set_as_colliders(self, context):
-        active_obj = context.active_object
+    def set_as_colliders(self, context, obj, collider):
+        active_obj = obj
 
-        # add existing colliders to fix .001 issues
         old_and_new_colliders = []
-        old_and_new_colliders.extend(context.selected_objects)
+        old_and_new_colliders.append(collider)
         for child in active_obj.children:
             if child.name.startswith("UCX_"):
                 old_and_new_colliders.append(child)
@@ -39,7 +38,10 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
                 collider["purpose"] = "proxy"
 
     def make_collision(self, context, obj):
-        mesh = bpy.data.meshes.new_from_object(obj)
+        depsgraph = context.evaluated_depsgraph_get()
+        obj_eval = obj.evaluated_get(depsgraph)
+
+        mesh = bpy.data.meshes.new_from_object(obj_eval, preserve_all_data_layers = False, depsgraph=depsgraph)
         self.convex_hull_bmesh(mesh)
         collider = bpy.data.objects.new(f"UCX_{obj.name}", mesh)
         collider.parent = obj
@@ -47,7 +49,7 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
         context.scene.collection.objects.link(collider)
         collider.select_set(True)
 
-        print(f"added {collider.name} to the scene")
+        return collider
 
 
     def convex_hull_bmesh(self, mesh):
