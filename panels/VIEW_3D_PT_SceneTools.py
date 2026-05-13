@@ -1,7 +1,5 @@
 import bpy  # type: ignore
 from ..constants import AddonProperties
-from ..operators.OBJECT_OT_MakeCollider import OBJECT_OT_MakeCollider
-from ..operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
 
 class VIEW3D_PT_SceneTools(bpy.types.Panel):
     bl_label = "Scene Tools"
@@ -13,8 +11,17 @@ class VIEW3D_PT_SceneTools(bpy.types.Panel):
         layout = self.layout
         self.draw_collider_tools(layout)
 
+
+        from ..operators.OBJECT_OT_Group import OBJECT_OT_Group
+        layout.operator(OBJECT_OT_Group.bl_idname)
+
+
         
     def draw_collider_tools(self, layout):
+        from ..operators.OBJECT_OT_MakeCollider import OBJECT_OT_MakeCollider
+        from ..operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
+
+
         box = layout.box()
         box.label(text= "Collider Tools")
         box.operator(OBJECT_OT_MakeCollider.bl_idname)

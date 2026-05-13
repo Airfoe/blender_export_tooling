@@ -8,6 +8,7 @@ from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
 from .operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
 from .operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
+from .operators.OBJECT_OT_Group import OBJECT_OT_Group
 from .operators.OBJECT_OT_MakeCollider import OBJECT_OT_MakeCollider
 from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
 from .operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
@@ -30,6 +31,7 @@ OBJECT_OT_ExportFBX,
 OBJECT_OT_ExportUSD,
 OBJECT_OT_FixWrongDataName,
 OBJECT_OT_FixWrongPurpose,
+OBJECT_OT_Group,
 OBJECT_OT_MakeCollider,
 OBJECT_OT_SelectObject,
 OBJECT_OT_ShowColliders,
