@@ -51,6 +51,7 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
 
         bpy.context.view_layer.objects.active = new_obj
         bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.convex_hull()
         bpy.ops.object.mode_set(mode='OBJECT')
 
