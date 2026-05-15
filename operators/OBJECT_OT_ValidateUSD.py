@@ -79,7 +79,14 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
 
     def draw_error_section(self,context,title,toggle_prop,items,icon="ERROR"):
         if not items:
+            box = self.layout.box()
+            row = box.row()
+            row.label(
+            text=f"{title}: {len(items)}",
+            icon="CHECKMARK"
+            )
             return
+        
 
         settings = context.scene.usd_validator_settings
         box = self.layout.box()

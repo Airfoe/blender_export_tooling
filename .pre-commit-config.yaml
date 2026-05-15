@@ -1,0 +1,10 @@
+repos:
+- repo: local
+  hooks:
+  - id: bump-blender-manifest-patch
+    name: Bump Blender manifest patch version
+    entry: python hooks/bump_manifest_patch.py
+    language: python
+    pass_filenames: false
+    always_run: true
+    stages: [commit]
