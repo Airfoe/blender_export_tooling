@@ -17,14 +17,11 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
             self.parent_collection = obj.users_collection[0]
             collider = self.make_collision(context,obj)
             self.set_as_colliders(context, obj, collider)
-        
-
         return {"FINISHED"}
     
 
     def set_as_colliders(self, context, obj, collider):
         active_obj = obj
-
         old_and_new_colliders = []
         old_and_new_colliders.append(collider)
         for child in active_obj.children:
@@ -39,34 +36,30 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
                 collider.parent = active_obj
                 collider.display_type = 'WIRE'
                 collider["purpose"] = "proxy"
+                collider.location = [0,0,0]
+                collider.rotation_euler = [0,0,0]
+                collider.scale = [1,1,1]
+
 
     def make_collision(self, context, obj):
-        depsgraph = context.evaluated_depsgraph_get()
-        obj_eval = obj.evaluated_get(depsgraph)
+        for sel_obj in context.selected_objects:
+            sel_obj.select_set(False)
 
-        mesh = bpy.data.meshes.new_from_object(obj_eval, preserve_all_data_layers = False, depsgraph=depsgraph)
-        self.convex_hull_bmesh(mesh)
-        collider = bpy.data.objects.new(f"UCX_{obj.name}", mesh)
-        collider.parent = obj
-        collider.matrix_world = obj.matrix_world.copy()
-        if self.parent_collection:
-            self.parent_collection.objects.link(collider)
-        else:
-            context.scene.collection.objects.link(collider)
-        collider.select_set(True)
-
-        return collider
+        new_obj = duplicate_object(obj)
+        new_obj.select_set(False)
 
 
-    def convex_hull_bmesh(self, mesh):
-        new_bmesh = bmesh.new()
-        new_bmesh.from_mesh(mesh)
+        bpy.context.view_layer.objects.active = new_obj
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.convex_hull()
+        bpy.ops.object.mode_set(mode='OBJECT')
 
-        bmesh.ops.remove_doubles(new_bmesh, verts=new_bmesh.verts, dist=0.0001)
+        return new_obj
 
-        bmesh.ops.convex_hull(new_bmesh, input=new_bmesh.verts)
 
-        new_bmesh.to_mesh(mesh)
-        new_bmesh.free()
-
-        mesh.update()
+def duplicate_object(src):
+    src = bpy.context.active_object
+    new_obj = src.copy()
+    new_obj.data = src.data.copy()
+    bpy.context.collection.objects.link(new_obj)
+    return new_obj
