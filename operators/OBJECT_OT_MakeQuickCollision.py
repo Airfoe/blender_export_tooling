@@ -7,11 +7,14 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
     bl_label = "Make Quick Collisions"
     bl_options = {"REGISTER", "UNDO"}
 
+    parent_collection = None
+
     def execute(self, context):
         parent_objects = [obj for obj in context.selected_objects]
         for obj in parent_objects:
             if obj.type != "MESH":
                 continue
+            self.parent_collection = obj.users_collection[0]
             collider = self.make_collision(context,obj)
             self.set_as_colliders(context, obj, collider)
         
@@ -46,7 +49,10 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
         collider = bpy.data.objects.new(f"UCX_{obj.name}", mesh)
         collider.parent = obj
         collider.matrix_world = obj.matrix_world.copy()
-        context.scene.collection.objects.link(collider)
+        if self.parent_collection:
+            self.parent_collection.objects.link(collider)
+        else:
+            context.scene.collection.objects.link(collider)
         collider.select_set(True)
 
         return collider

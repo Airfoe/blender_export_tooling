@@ -82,7 +82,7 @@ def export_USD(name):
         quad_method='SHORTEST_DIAGONAL', 
         ngon_method='BEAUTY', usdz_downscale_size='KEEP', 
         usdz_downscale_custom_size=128, 
-        merge_parent_xform=False, 
+        merge_parent_xform=True, 
         convert_scene_units='CENTIMETERS', 
         meters_per_unit=100,
     )
