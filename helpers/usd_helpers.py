@@ -198,21 +198,19 @@ def usd_validator(context):
                     scene_valid = False
 
             if has_wrong_name(obj, "GEO"):
+                if is_collision_mesh(obj):
+                    continue
                 from ..operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
-                print(f"{obj.name} has wrong data name: {obj.data.name if obj.data else 'no data'}")
                 item = cache.wrong_data_names.add()
                 item.type = "wrong_name"
                 item.object_name = obj.name
                 item.expected = "GEO_ prefix for geometry objects"
                 item.found = "no GEO_ prefix"
-                item.message = f"{obj.name} does not follow naming convention. Expected name to start with GEO_"
+                item.message = f"{obj.name} doesnt start with GEO_"
                 item.level = "WARNING"
                 item.fix_operator = OBJECT_OT_FixWrongDataName.bl_idname
                 item.fix_object_name = obj.name
-                if is_collision_mesh(obj):
-                    item.fix_data = "UXC"
-                else:
-                    item.fix_data = "GEO"
+                item.fix_data = "GEO"
                 
     
     return scene_valid
@@ -244,9 +242,7 @@ def has_wrong_name(obj, prefix_data):
     name = obj.name.lower()
     data_name = obj.data.name.lower() if obj.data else ""
     false_geo_name = not data_name.startswith(f"{prefix_data.lower()}_{name}")
-    false_collider_name = not data_name.startswith(f"uxc_")
-    return false_geo_name or false_collider_name
-
+    return false_geo_name
 
 def convexity(obj):
     bm = bmesh.new()

@@ -13,7 +13,10 @@ class OBJECT_OT_FixWrongDataName(bpy.types.Operator):
     def execute(self, context):
         obj = bpy.data.objects.get(self.object_name)
         if obj and obj.data:
-            obj.data.name = f"{self.fix_data}_{obj.name}"
+            try:
+                obj.data.name = f"{self.fix_data}_{obj.name}"
+            except Exception as e:
+                self.report({"ERROR"}, f"{e}, liklely linked mesh?")
 
         from ..helpers.usd_helpers import usd_validator
         usd_validator(context)
