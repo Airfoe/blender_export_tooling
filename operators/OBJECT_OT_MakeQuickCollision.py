@@ -32,10 +32,10 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
             if collider == active_obj:
                 pass
             else:
-                collider.name = f"UCX_{active_obj.name}_{index:02d}"
+                collider.name = f"UCX_{active_obj.data.name}_{index:02d}"
                 collider.parent = active_obj
                 collider.display_type = 'WIRE'
-                collider["purpose"] = "proxy"
+                collider["purpose"] = "collision"
                 collider.location = [0,0,0]
                 collider.rotation_euler = [0,0,0]
                 collider.scale = [1,1,1]

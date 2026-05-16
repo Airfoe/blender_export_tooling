@@ -3,7 +3,8 @@ from pathlib import Path
 from time import sleep
 from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
 import bmesh #type: ignore
-
+from pxr import Usd, UsdGeom, Sdf, UsdPhysics #type: ignore
+ 
 def export_USD(name):
     filepath = bpy.data.filepath
     if not filepath:
@@ -43,7 +44,7 @@ def export_USD(name):
 
         only_deform_bones=False, 
         export_shapekeys=True, 
-        use_instancing=False, 
+        use_instancing=True,
         evaluation_mode='RENDER', 
         generate_preview_surface=True, 
         generate_materialx_network=False, 
@@ -59,7 +60,7 @@ def export_USD(name):
         custom_properties_namespace='userProperties', 
         accessibility_label='', 
         accessibility_description='', 
-        author_blender_name=True, 
+        author_blender_name=False, 
         convert_world_material=False, 
         allow_unicode=True, 
         
@@ -76,7 +77,7 @@ def export_USD(name):
         export_cameras=True, 
         export_curves=True, 
         export_points=True, 
-        export_volumes=True, 
+        export_volumes=False, 
 
         triangulate_meshes=False, 
         quad_method='SHORTEST_DIAGONAL', 
@@ -90,24 +91,73 @@ def export_USD(name):
     usd_post_processing(export_path)
 
 def usd_post_processing(filepath):
-    from pxr import Usd, UsdGeom #type: ignore
     stage = Usd.Stage.Open(str(filepath))
-    filename = filepath.name
+
+    set_collision_meshes(stage)
+    set_usd_purpose(stage)
+
+    stage.GetRootLayer().Save()
+
+
+
+def set_collision_meshes(stage):
+    ucx_roots_to_delete = []
+
+    for prim in stage.Traverse():
+        # Only care about Xforms that represent UCX collision groups
+        if not prim.IsA(UsdGeom.Xform):
+            continue
+
+        if prim.GetName().startswith("UCX_") is False:
+            continue
+
+        parent = prim.GetParent()
+        if not parent:
+            continue
+
+        mesh_children = [
+            c for c in prim.GetChildren()
+            if c.IsA(UsdGeom.Mesh)
+        ]
+
+        if not mesh_children:
+            continue
+
+        for mesh in mesh_children:
+            old_path = mesh.GetPath()
+            new_path = parent.GetPath().AppendChild(mesh.GetName())
+
+            stage.MovePrim(old_path, new_path)
+
+            moved_prim = stage.GetPrimAtPath(new_path)
+            UsdGeom.Imageable(moved_prim).CreatePurposeAttr().Set("proxy")
+
+        ucx_roots_to_delete.append(prim.GetPath())
+
+    for path in ucx_roots_to_delete:
+        stage.RemovePrim(path)
+
+
+def set_usd_purpose(stage):
 
     valid_purposes = {"default", "render", "proxy", "guide"}
 
-    # set purposes for colliders
+
     for prim in stage.Traverse():
-        if prim.IsA(UsdGeom.Imageable):
+        if not prim.IsA(UsdGeom.Imageable):
+            continue
 
-            attr = prim.GetAttribute("userProperties:purpose")
-            purpose = attr.Get() if attr and attr.HasAuthoredValue() else None
+        imageable = UsdGeom.Imageable(prim)
 
-            if purpose and purpose in valid_purposes:
-                imageable = UsdGeom.Imageable(prim)
-                imageable.CreatePurposeAttr().Set(purpose)
+        attr = prim.GetAttribute("userProperties:purpose")
+        purpose = attr.Get() if attr and attr.HasAuthoredValue() else None
 
-    stage.GetRootLayer().Save()
+        if purpose and purpose in valid_purposes:
+            imageable.CreatePurposeAttr().Set(purpose)
+
+        if purpose and purpose == "collision":
+            imageable.CreatePurposeAttr().Set("proxy")
+
 
 def send_usd_reload_request():
     import requests
@@ -121,9 +171,6 @@ def usd_validator(context):
     settings = context.scene.usd_validator_settings
     cache = settings.cache
 
-    # ---------------------------------------
-    # CLEAR OLD DATA
-    # ---------------------------------------
     cache.missing_collision.clear()
     cache.missing_material.clear()
     cache.concave_colliders.clear()
@@ -132,9 +179,6 @@ def usd_validator(context):
 
     scene_valid = True
 
-    # ---------------------------------------
-    # SCAN SCENE
-    # ---------------------------------------
     for obj in bpy.data.objects:
 
         if not obj:
@@ -182,7 +226,7 @@ def usd_validator(context):
 
                 purpose = obj.get("purpose", "")
 
-                if purpose != "proxy":
+                if purpose != "collision":
                     item = cache.wrong_purposes.add()
                     item.type = "wrong_purpose"
                     item.object_name = obj.name
@@ -194,23 +238,24 @@ def usd_validator(context):
                     from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
                     item.fix_operator = OBJECT_OT_FixWrongPurpose.bl_idname
                     item.fix_object_name = obj.name
-                    item.fix_data = "proxy"
+                    item.fix_data = "collision"
                     scene_valid = False
 
-            if has_wrong_name(obj, "GEO"):
+            if has_wrong_name(obj, "GEO_"):
                 if is_collision_mesh(obj):
                     continue
                 from ..operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
                 item = cache.wrong_data_names.add()
-                item.type = "wrong_name"
+                item.type = "wrong_data_name"
                 item.object_name = obj.name
                 item.expected = "GEO_ prefix for geometry objects"
                 item.found = "no GEO_ prefix"
-                item.message = f"{obj.name} doesnt start with GEO_"
-                item.level = "WARNING"
+                item.message = f"{obj.data.name} should match with {obj.name}"
+                item.level = "ERROR"
                 item.fix_operator = OBJECT_OT_FixWrongDataName.bl_idname
                 item.fix_object_name = obj.name
-                item.fix_data = "GEO"
+                item.fix_data = "GEO_"
+                return False
                 
     
     return scene_valid
@@ -239,10 +284,24 @@ def is_collision_mesh(obj):
     return False
 
 def has_wrong_name(obj, prefix_data):
-    name = obj.name.lower()
-    data_name = obj.data.name.lower() if obj.data else ""
-    false_geo_name = not data_name.startswith(f"{prefix_data.lower()}_{name}")
+    name = obj.name
+    prefix_removed = name.removeprefix(prefix_data)
+    data_name = obj.data.name if obj.data else ""
+    false_geo_name = data_name != prefix_removed
     return false_geo_name
+
+def has_wrong_collision_name(obj):
+    parent = obj.parent
+    if parent is None:
+        return True
+
+    if not obj.name.startswith("UCX_"):
+        return True
+    
+    raw_name = obj.name.removeprefix("UCX_")
+    if not obj.parent.data.name.startswith(raw_name):
+        return True
+    return False
 
 def convexity(obj):
     bm = bmesh.new()
@@ -250,7 +309,6 @@ def convexity(obj):
     bm.transform(obj.matrix_world)
     
     original_volume = abs(bm.calc_volume())
-
     hull_bm = bm.copy()
 
     bmesh.ops.delete(
