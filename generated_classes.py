@@ -12,9 +12,11 @@ from .operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
 from .operators.OBJECT_OT_Group import OBJECT_OT_Group
 from .operators.OBJECT_OT_MakeCollider import OBJECT_OT_MakeCollider
 from .operators.OBJECT_OT_MakeQuickCollision import OBJECT_OT_MakeQuickCollision
+from .operators.OBJECT_OT_MarkAsPurpose import OBJECT_OT_MarkAsPurpose
 from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
 from .operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
 from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
+from .operators.UDS_OT_USDHook import UDS_OT_USDHook
 from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
 from .panels.VIEW_3D_PT_SceneTools import VIEW3D_PT_SceneTools
 
@@ -37,9 +39,11 @@ OBJECT_OT_FixWrongPurpose,
 OBJECT_OT_Group,
 OBJECT_OT_MakeCollider,
 OBJECT_OT_MakeQuickCollision,
+OBJECT_OT_MarkAsPurpose,
 OBJECT_OT_SelectObject,
 OBJECT_OT_ShowColliders,
 OBJECT_OT_ValidateUSD,
+UDS_OT_USDHook,
 
 #Panels
 VIEW3D_PT_UI_Sample,

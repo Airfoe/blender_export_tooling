@@ -14,5 +14,8 @@ class OBJECT_OT_SelectObject(bpy.types.Operator):
             bpy.data.objects[self.object_name].select_set(False)
             context.view_layer.objects.active = bpy.data.objects[self.object_name]
         else:
-            bpy.data.objects[self.object_name].select_set(True)
+            if self.object_name in context.view_layer.objects:
+                bpy.data.objects[self.object_name].select_set(True)
+            else:
+                self.report({"WARNING"}, "not in current scene")
         return {"FINISHED"}

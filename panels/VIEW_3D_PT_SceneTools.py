@@ -10,10 +10,28 @@ class VIEW3D_PT_SceneTools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         self.draw_collider_tools(layout)
+        self.draw_misc_tools(layout)
 
+
+
+    def draw_misc_tools(self, layout):
         from ..operators.OBJECT_OT_Group import OBJECT_OT_Group
-        layout.operator(OBJECT_OT_Group.bl_idname)
+        from ..operators.OBJECT_OT_MarkAsPurpose import OBJECT_OT_MarkAsPurpose
 
+        box = layout.box()
+        box.label(text="misc tools")
+        box.operator(OBJECT_OT_Group.bl_idname)
+        row = box.row(align=True)
+        row.operator(OBJECT_OT_MarkAsPurpose.bl_idname, text = "guide").purpose = "guide"
+        row.operator(OBJECT_OT_MarkAsPurpose.bl_idname, text = "render").purpose = "render"
+        row.operator(OBJECT_OT_MarkAsPurpose.bl_idname, text = "proxy").purpose = "proxy"
+        row.operator(OBJECT_OT_MarkAsPurpose.bl_idname, text = "clear").purpose = "default"
+
+
+        
+
+
+        
 
         
     def draw_collider_tools(self, layout):

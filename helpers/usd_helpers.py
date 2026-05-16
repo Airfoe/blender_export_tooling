@@ -285,6 +285,9 @@ def is_collision_mesh(obj):
 
 def has_wrong_name(obj, prefix_data):
     name = obj.name
+    if name.endswith("_inst"):
+        return False
+
     prefix_removed = name.removeprefix(prefix_data)
     data_name = obj.data.name if obj.data else ""
     false_geo_name = data_name != prefix_removed
