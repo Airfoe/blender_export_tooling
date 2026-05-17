@@ -3,15 +3,25 @@ from pathlib import Path
 from time import sleep
 from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
 import bmesh #type: ignore
+import os
+from ..constants import get_export_root
+
 from pxr import Usd, UsdGeom, Sdf, UsdPhysics #type: ignore
  
-def export_USD(name):
+def export_USD(name, asset_type):
     filepath = bpy.data.filepath
     if not filepath:
         bpy.context.window_manager.report({"ERROR"}, "Please save the blend file before exporting.")
         return
-    export_path = Path(filepath).parent.parent / "export" / f"{name}.usdc"
-    export_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    export_root = get_export_root()
+    if asset_type == "scene":
+       export_dir = export_root
+    else:
+        export_dir = os.path.join(export_root, asset_type)
+
+    os.makedirs(export_dir, exist_ok=True)
+    export_path = os.path.join(export_dir, f"{name}.usda")
 
 
     bpy.ops.wm.usd_export(
@@ -88,75 +98,6 @@ def export_USD(name):
         meters_per_unit=100,
     )
 
-    usd_post_processing(export_path)
-
-def usd_post_processing(filepath):
-    stage = Usd.Stage.Open(str(filepath))
-
-    set_collision_meshes(stage)
-    set_usd_purpose(stage)
-
-    stage.GetRootLayer().Save()
-
-
-
-def set_collision_meshes(stage):
-    ucx_roots_to_delete = []
-
-    for prim in stage.Traverse():
-        # Only care about Xforms that represent UCX collision groups
-        if not prim.IsA(UsdGeom.Xform):
-            continue
-
-        if prim.GetName().startswith("UCX_") is False:
-            continue
-
-        parent = prim.GetParent()
-        if not parent:
-            continue
-
-        mesh_children = [
-            c for c in prim.GetChildren()
-            if c.IsA(UsdGeom.Mesh)
-        ]
-
-        if not mesh_children:
-            continue
-
-        for mesh in mesh_children:
-            old_path = mesh.GetPath()
-            new_path = parent.GetPath().AppendChild(mesh.GetName())
-
-            stage.MovePrim(old_path, new_path)
-
-            moved_prim = stage.GetPrimAtPath(new_path)
-            UsdGeom.Imageable(moved_prim).CreatePurposeAttr().Set("proxy")
-
-        ucx_roots_to_delete.append(prim.GetPath())
-
-    for path in ucx_roots_to_delete:
-        stage.RemovePrim(path)
-
-
-def set_usd_purpose(stage):
-
-    valid_purposes = {"default", "render", "proxy", "guide"}
-
-
-    for prim in stage.Traverse():
-        if not prim.IsA(UsdGeom.Imageable):
-            continue
-
-        imageable = UsdGeom.Imageable(prim)
-
-        attr = prim.GetAttribute("userProperties:purpose")
-        purpose = attr.Get() if attr and attr.HasAuthoredValue() else None
-
-        if purpose and purpose in valid_purposes:
-            imageable.CreatePurposeAttr().Set(purpose)
-
-        if purpose and purpose == "collision":
-            imageable.CreatePurposeAttr().Set("proxy")
 
 
 def send_usd_reload_request():

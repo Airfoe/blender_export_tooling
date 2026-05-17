@@ -6,6 +6,7 @@ from .ValidatorPropertyGroup import USD_PG_ValidatorSettings
 from .ValidatorPropertyGroup import USD_PG_ExportHookSettings
 from .operators.FILE_OT_MakeAsset import FILE_OT_MakeAsset
 from .operators.FILE_OT_OpenAsset import FILE_OT_OpenAsset
+from .operators.FILE_OT_SetAssetType import FILE_OT_SetAssetType
 from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
 from .operators.OBJECT_OT_FixAllNames import OBJECT_OT_FixAllNames
@@ -18,7 +19,7 @@ from .operators.OBJECT_OT_MarkAsPurpose import OBJECT_OT_MarkAsPurpose
 from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
 from .operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
 from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
-from .operators.UDS_OT_USDHook import UDS_OT_USDHook
+from .operators.USD_OT_USDHook import USD_OT_USDHook
 from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
 from .panels.VIEW_3D_PT_SceneTools import VIEW3D_PT_SceneTools
 
@@ -35,6 +36,7 @@ USD_PG_ExportHookSettings,
 #Operators
 FILE_OT_MakeAsset,
 FILE_OT_OpenAsset,
+FILE_OT_SetAssetType,
 OBJECT_OT_ExportFBX,
 OBJECT_OT_ExportUSD,
 OBJECT_OT_FixAllNames,
@@ -47,7 +49,7 @@ OBJECT_OT_MarkAsPurpose,
 OBJECT_OT_SelectObject,
 OBJECT_OT_ShowColliders,
 OBJECT_OT_ValidateUSD,
-UDS_OT_USDHook,
+USD_OT_USDHook,
 
 #Panels
 VIEW3D_PT_UI_Sample,

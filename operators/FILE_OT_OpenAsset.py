@@ -22,7 +22,8 @@ class FILE_OT_OpenAsset(bpy.types.Operator):
         obj = context.active_object
         collection = obj.instance_collection
         collection_name = collection.name
-        filepath = collection.library.filepath
+
+        filepath = bpy.path.abspath(collection.library.filepath)
 
         
         if self.save:

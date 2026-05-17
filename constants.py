@@ -19,6 +19,10 @@ def get_manifest():
     return manifest
 
 
+def get_export_root():
+    from pathlib import Path
+    return Path("X:\\PROD\\_export")
+
 def get_preferences():
     # No context needed, directly get addon preferences by package name
     addon_prefs = bpy.context.preferences.addons.get(__package__).preferences
