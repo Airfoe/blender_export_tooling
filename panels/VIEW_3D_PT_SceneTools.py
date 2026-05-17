@@ -10,13 +10,15 @@ class VIEW3D_PT_SceneTools(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         self.draw_collider_tools(layout)
-        self.draw_misc_tools(layout)
+        self.draw_misc_tools(layout, context)
 
 
 
-    def draw_misc_tools(self, layout):
+    def draw_misc_tools(self, layout, context):
         from ..operators.OBJECT_OT_Group import OBJECT_OT_Group
         from ..operators.OBJECT_OT_MarkAsPurpose import OBJECT_OT_MarkAsPurpose
+        from ..operators.FILE_OT_MakeAsset import FILE_OT_MakeAsset
+        from ..operators.FILE_OT_OpenAsset import FILE_OT_OpenAsset
 
         box = layout.box()
         box.label(text="misc tools")
@@ -27,8 +29,14 @@ class VIEW3D_PT_SceneTools(bpy.types.Panel):
         row.operator(OBJECT_OT_MarkAsPurpose.bl_idname, text = "proxy").purpose = "proxy"
         row.operator(OBJECT_OT_MarkAsPurpose.bl_idname, text = "clear").purpose = "default"
 
+        obj = getattr(context, "active_object", None)
 
-        
+        if getattr(obj, "type", None) == "EMPTY" and getattr(obj, "instance_type", None) == "COLLECTION":
+            box.operator(FILE_OT_OpenAsset.bl_idname, icon="FILE_ALIAS")
+        else:
+            box.operator(FILE_OT_MakeAsset.bl_idname, icon="BOOKMARKS")
+
+                
 
 
         

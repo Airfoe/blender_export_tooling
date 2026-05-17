@@ -18,8 +18,6 @@ class OBJECT_OT_MakeCollider(bpy.types.Operator):
 
     def execute(self, context):
         active_obj = context.active_object
-
-        # add existing colliders to fix .001 issues
         old_and_new_colliders = []
         old_and_new_colliders.extend(context.selected_objects)
         for child in active_obj.children:

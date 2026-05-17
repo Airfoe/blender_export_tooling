@@ -4,6 +4,8 @@ from .ValidatorPropertyGroup import USD_PG_ValidationItem
 from .ValidatorPropertyGroup import USD_PG_ValidatorCache
 from .ValidatorPropertyGroup import USD_PG_ValidatorSettings
 from .ValidatorPropertyGroup import USD_PG_ExportHookSettings
+from .operators.FILE_OT_MakeAsset import FILE_OT_MakeAsset
+from .operators.FILE_OT_OpenAsset import FILE_OT_OpenAsset
 from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
 from .operators.OBJECT_OT_FixAllNames import OBJECT_OT_FixAllNames
@@ -31,6 +33,8 @@ USD_PG_ValidatorSettings,
 USD_PG_ExportHookSettings,
 
 #Operators
+FILE_OT_MakeAsset,
+FILE_OT_OpenAsset,
 OBJECT_OT_ExportFBX,
 OBJECT_OT_ExportUSD,
 OBJECT_OT_FixAllNames,

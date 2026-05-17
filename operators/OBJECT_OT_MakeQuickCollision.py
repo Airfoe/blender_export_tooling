@@ -59,7 +59,6 @@ class OBJECT_OT_MakeQuickCollision(bpy.types.Operator):
 
 
 def duplicate_object(src):
-    src = bpy.context.active_object
     new_obj = src.copy()
     new_obj.data = src.data.copy()
     bpy.context.collection.objects.link(new_obj)
