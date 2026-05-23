@@ -12,7 +12,7 @@ class ValidationResult():
 
 def missing_collision(obj) -> list[ValidationResult]:
     missing_collision_results = []
-    name = obj.name.lower()
+    name = obj.data.name
     
     if obj.type != "MESH":
         return missing_collision_results
@@ -21,7 +21,7 @@ def missing_collision(obj) -> list[ValidationResult]:
         return missing_collision_results
 
     for child in obj.children:
-        if child.name.lower().startswith(f"ucx_{name}"):
+        if child.name.startswith(f"UCX_{name}"):
             return missing_collision_results
 
     missing_collision_results.append(
@@ -87,7 +87,7 @@ def wrong_purpose(obj) -> list[ValidationResult]:
         if purpose not in {"proxy", "collision"}:
             wrong_purpose_results.append(
                 ValidationResult(
-                    error_type="wrong_purpose",
+                    error_type="wrong_purposes",
                     error_object=obj.name,
                     error_message=f"{obj.name} should have proxy or collision purpose",
                     is_critical=True
@@ -98,7 +98,7 @@ def wrong_purpose(obj) -> list[ValidationResult]:
         if purpose in {"proxy", "collision"}:
             wrong_purpose_results.append(
                 ValidationResult(
-                    error_type="wrong_purpose",
+                    error_type="wrong_purposes",
                     error_object=obj.name,
                     error_message=f"{obj.name} should not have proxy or collision purpose",
                     is_critical=True
