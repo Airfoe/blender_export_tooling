@@ -1,16 +1,19 @@
 import bpy #type: ignore
 import bmesh #type: ignore
-
+from .fixer_factory import make_fixer
 from typing import Callable
 
 class ValidationResult():
-    def __init__(self, error_type: str, error_object:str, error_message:str, is_critical:bool) -> None: 
+    def __init__(self, error_type: str, error_object:str, error_message:str, is_critical:bool, fixer:str | None = None) -> None: 
         self.error_type:str = error_type
         self.error_object:str = error_object
         self.error_message:str = error_message
         self.is_critical:bool = is_critical
+        self.fixer: str | None = fixer
 
 def missing_collision(obj) -> list[ValidationResult]:
+    from .fixes import fix_missing_collision
+
     missing_collision_results = []
     name = obj.data.name
     
@@ -24,12 +27,15 @@ def missing_collision(obj) -> list[ValidationResult]:
         if child.name.startswith(f"UCX_{name}"):
             return missing_collision_results
 
+    _, fixer = make_fixer("fix_collision", fix_missing_collision, {"obj": obj})
+
     missing_collision_results.append(
         ValidationResult(
             error_type="missing_collision",
             error_object=obj.name,
             error_message=f"{obj.name} is missing collisions",
-            is_critical=False
+            is_critical=False,
+            fixer = fixer
         )
     )
 

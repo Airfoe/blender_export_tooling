@@ -47,6 +47,8 @@ def scene_validator(context, rules: list[Callable] = default_rules):
         item.object_name = result.error_object
         item.message = result.error_message
         item.is_critical = result.is_critical
+        if result.fixer:
+            item.fix_operator = result.fixer
         scene_valid = False
     return scene_valid
 
