@@ -1,7 +1,17 @@
 import bpy #type: ignore
-from .rules import missing_collision, missing_material, convex_collision, wrong_data_name, wrong_purpose
+from .rules import missing_collision, missing_material, convex_collision, wrong_data_names, wrong_purpose
+from typing import Callable
 
-def scene_validator(context):
+
+default_rules = [
+    missing_collision, 
+    missing_material, 
+    convex_collision, 
+    wrong_data_names, 
+    wrong_purpose
+    ]
+
+def scene_validator(context, rules: list[Callable] = default_rules):
     settings = context.scene.usd_validator_settings
     cache = settings.cache
 
@@ -18,26 +28,26 @@ def scene_validator(context):
         if is_excluded(obj):
             continue
 
-        results.append(missing_collision(obj))
-        results.append(missing_material(obj))
-        results.append(convex_collision(obj))
-        results.append(wrong_data_name(obj))
-        results.append(wrong_purpose(obj))
+        print(obj.name, obj.data.name)
+        for rule in rules:
+            results.extend(rule(obj))
 
-    for result_list in results:
-        for result in result_list:
-            
-            error_collection = getattr(cache, result.error_type, None)
-            if error_collection is None:
-                continue
 
-            item = error_collection.add()
-            item.type = result.error_type
-            item.object_name = result.error_object
-            item.message = result.error_message
-            item.is_critical = result.is_critical
-            scene_valid = False
+    print("overall issues: ", len(results))
+    print("-------------------------")
+    for result in results:
+        print(result.error_type)
+        error_collection = getattr(cache, result.error_type, None)
+        if error_collection is None:
+            print(result.error_type, " could not be added to cache")
+            continue
 
+        item = error_collection.add()
+        item.type = result.error_type
+        item.object_name = result.error_object
+        item.message = result.error_message
+        item.is_critical = result.is_critical
+        scene_valid = False
     return scene_valid
 
 def is_excluded(obj):
