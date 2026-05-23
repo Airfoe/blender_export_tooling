@@ -1,5 +1,6 @@
 import bpy #type: ignore
 from ..constants import get_operator
+from ..helpers.collider_helpers import set_as_colliders
 class OBJECT_OT_MakeCollider(bpy.types.Operator):
     bl_idname = get_operator("make_collider")
     bl_label = "Make Collider Objects"
@@ -17,19 +18,5 @@ class OBJECT_OT_MakeCollider(bpy.types.Operator):
 
 
     def execute(self, context):
-        active_obj = context.active_object
-        old_and_new_colliders = []
-        old_and_new_colliders.extend(context.selected_objects)
-        for child in active_obj.children:
-            if child.name.startswith("UCX_"):
-                old_and_new_colliders.append(child)
-
-        for index, collider in enumerate(old_and_new_colliders):
-            if collider == active_obj:
-                pass
-            else:
-                collider.name = f"UCX_{active_obj.name}_{index:02d}"
-                collider.parent = active_obj
-                collider.display_type = 'WIRE'
-                collider["purpose"] = "proxy"
+        set_as_colliders(context.active_object, context.selected_objects)
         return {"FINISHED"}

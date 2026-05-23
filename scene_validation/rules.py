@@ -73,12 +73,20 @@ def convex_collision(obj) -> list[ValidationResult]:
     conv = convexity(obj)
     if conv < 0.99:
 
+        from .fixes import fix_convex_collision
+        data = {
+            "parent": obj.parent,
+            "obj": obj
+        }
+        _, fixer = make_fixer("fix_convexity", fix_convex_collision, data)
+
         convex_collision_results.append(
             ValidationResult(
                 error_type="concave_colliders",
                 error_object=obj.name,
                 error_message=f"{obj.name} has a convexity of {conv}",
-                is_critical=True
+                is_critical=True,
+                fixer = fixer
             )
         )
 

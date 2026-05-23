@@ -1,20 +1,21 @@
 import bpy #type: ignore
+from ..helpers.collider_helpers import quick_collision
 
-def fix_missing_collision(context, obj):
-    print("fixing collision!")
+def fix_missing_collision(context, data):
+    quick_collision([data["obj"]], context)
+
+def fix_missing_material(context, data):
     pass
 
-def fix_missing_material(context, obj):
+def fix_convex_collision(context, data):
+
     pass
 
-def fix_convex_collision(context, obj):
+def fix_wrong_purpose(context, data):
     pass
 
-def fix_wrong_purpose(context, obj):
+def fix_missing_prefix(context, data):
     pass
 
-def fix_missing_prefix(context, obj):
-    pass
-
-def fix_wrong_dataname(context, obj):
+def fix_wrong_dataname(context, data):
     pass

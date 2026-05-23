@@ -1,5 +1,4 @@
 import bpy #type: ignore
-
 REGISTERED_OPERATORS = []
 
 
@@ -12,12 +11,14 @@ def new_operator(name, func, data:dict):
 
     passed_data = data
 
+    from .validator import scene_validator
     class DynamicOperator(bpy.types.Operator):
         bl_idname = f"airfoe_fixer.{name}"
         bl_label = name
 
         def execute(self, context):
             func(context, passed_data)
+            scene_validator(context=context)
             return {'FINISHED'}
         
     return DynamicOperator
