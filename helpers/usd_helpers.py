@@ -1,12 +1,7 @@
 import bpy # type: ignore
-from pathlib import Path
-from time import sleep
-from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
-import bmesh #type: ignore
 import os
 from ..constants import get_export_root
 
-from pxr import Usd, UsdGeom, Sdf, UsdPhysics #type: ignore
  
 def export_USD(name, asset_type):
     filepath = bpy.data.filepath
@@ -106,98 +101,3 @@ def send_usd_reload_request():
         requests.post("http://127.0.0.1:5000/reload_usd")
     except requests.exceptions.ConnectionError:
         print("Could not connect to Unreal Engine listener. Make sure Unreal Engine is running and the listener is set up correctly.")
-
-def usd_validator(context):
-
-    settings = context.scene.usd_validator_settings
-    cache = settings.cache
-
-    cache.missing_collision.clear()
-    cache.missing_material.clear()
-    cache.concave_colliders.clear()
-    cache.wrong_purposes.clear()
-    cache.wrong_data_names.clear()
-
-    scene_valid = True
-
-    for obj in bpy.data.objects:
-
-        if not obj:
-            continue
-
-        if obj.library:
-            continue
-
-        if obj.data and obj.data.library:
-            continue
-
-
-        if obj.type == 'MESH':
-            if needs_collision(obj):
-
-                item = cache.missing_collision.add()
-                item.type = "missing_collision"
-                item.object_name = obj.name
-                item.expected = "collision mesh"
-                item.found = ""
-                item.message = f"{obj.name} is missing collision mesh"
-                item.level = "WARNING"
-
-            if needs_material(obj):
-
-                item = cache.missing_material.add()
-                item.type = "missing_material"
-                item.object_name = obj.name
-                item.expected = "material slot"
-                item.found = "none"
-                item.message = f"{obj.name} has no material"
-                item.level = "WARNING"
-
-            if is_collision_mesh(obj):
-                conv = convexity(obj)
-                if conv < 0.99:
-                    item = cache.concave_colliders.add()
-                    item.type = "concave_collision"
-                    item.object_name = obj.name
-                    item.expected = "< 0.95"
-                    item.found = f"{conv:.23f}"
-                    item.message = f"{obj.name} convexity is {conv:.2f}"
-                    item.level = "ERROR"
-                    scene_valid = False
-
-                purpose = obj.get("purpose", "")
-
-                if purpose != "collision":
-                    item = cache.wrong_purposes.add()
-                    item.type = "wrong_purpose"
-                    item.object_name = obj.name
-                    item.expected = "proxy"
-                    item.found = purpose
-                    item.message = f"{obj.name} has wrong purpose: {purpose}"
-                    item.level = "ERROR"
-
-                    from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
-                    item.fix_operator = OBJECT_OT_FixWrongPurpose.bl_idname
-                    item.fix_object_name = obj.name
-                    item.fix_data = "collision"
-                    scene_valid = False
-
-            if has_wrong_name(obj, "GEO_"):
-                if is_collision_mesh(obj):
-                    continue
-                from ..operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
-                item = cache.wrong_data_names.add()
-                item.type = "wrong_data_name"
-                item.object_name = obj.name
-                item.expected = "GEO_ prefix for geometry objects"
-                item.found = "no GEO_ prefix"
-                item.message = f"{obj.data.name} should match with {obj.name}"
-                item.level = "ERROR"
-                item.fix_operator = OBJECT_OT_FixWrongDataName.bl_idname
-                item.fix_object_name = obj.name
-                item.fix_data = "GEO_"
-                return False
-                
-    
-    return scene_valid
-

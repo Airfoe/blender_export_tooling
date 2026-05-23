@@ -4,22 +4,23 @@ from .ValidatorPropertyGroup import USD_PG_ValidationItem
 from .ValidatorPropertyGroup import USD_PG_ValidatorCache
 from .ValidatorPropertyGroup import USD_PG_ValidatorSettings
 from .ValidatorPropertyGroup import USD_PG_ExportHookSettings
-from .operators.FILE_OT_MakeAsset import FILE_OT_MakeAsset
-from .operators.FILE_OT_OpenAsset import FILE_OT_OpenAsset
-from .operators.FILE_OT_SetAssetType import FILE_OT_SetAssetType
-from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
-from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
-from .operators.OBJECT_OT_FixAllNames import OBJECT_OT_FixAllNames
-from .operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
-from .operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
-from .operators.OBJECT_OT_Group import OBJECT_OT_Group
-from .operators.OBJECT_OT_MakeCollider import OBJECT_OT_MakeCollider
-from .operators.OBJECT_OT_MakeQuickCollision import OBJECT_OT_MakeQuickCollision
-from .operators.OBJECT_OT_MarkAsPurpose import OBJECT_OT_MarkAsPurpose
 from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
-from .operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
-from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
+from .operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
+from .operators.OBJECT_OT_Group import OBJECT_OT_Group
+from .operators.FILE_OT_MakeAsset import FILE_OT_MakeAsset
+from .operators.OBJECT_OT_MarkAsPurpose import OBJECT_OT_MarkAsPurpose
+from .operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
+from .operators.OBJECT_OT_MakeCollider import OBJECT_OT_MakeCollider
+from .operators.OBJECT_OT_FixWrongDataName import OBJECT_OT_FixWrongDataName
 from .operators.USD_OT_USDHook import USD_OT_USDHook
+from .operators.OBJECT_OT_FixAllNames import OBJECT_OT_FixAllNames
+from .operators.FILE_OT_OpenAsset import FILE_OT_OpenAsset
+from .operators.OBJECT_OT_MakeQuickCollision import OBJECT_OT_MakeQuickCollision
+from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
+from .operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
+from .operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
+from .operators.FILE_OT_SetAssetType import FILE_OT_SetAssetType
+from .scene_validation.DATA_OT_FixOperator import DATA_OT_FixOperator
 from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
 from .panels.VIEW_3D_PT_SceneTools import VIEW3D_PT_SceneTools
 
@@ -34,22 +35,23 @@ USD_PG_ValidatorSettings,
 USD_PG_ExportHookSettings,
 
 #Operators
-FILE_OT_MakeAsset,
-FILE_OT_OpenAsset,
-FILE_OT_SetAssetType,
-OBJECT_OT_ExportFBX,
-OBJECT_OT_ExportUSD,
-OBJECT_OT_FixAllNames,
-OBJECT_OT_FixWrongDataName,
-OBJECT_OT_FixWrongPurpose,
-OBJECT_OT_Group,
-OBJECT_OT_MakeCollider,
-OBJECT_OT_MakeQuickCollision,
-OBJECT_OT_MarkAsPurpose,
 OBJECT_OT_SelectObject,
-OBJECT_OT_ShowColliders,
-OBJECT_OT_ValidateUSD,
+OBJECT_OT_ExportFBX,
+OBJECT_OT_Group,
+FILE_OT_MakeAsset,
+OBJECT_OT_MarkAsPurpose,
+OBJECT_OT_FixWrongPurpose,
+OBJECT_OT_MakeCollider,
+OBJECT_OT_FixWrongDataName,
 USD_OT_USDHook,
+OBJECT_OT_FixAllNames,
+FILE_OT_OpenAsset,
+OBJECT_OT_MakeQuickCollision,
+OBJECT_OT_ValidateUSD,
+OBJECT_OT_ExportUSD,
+OBJECT_OT_ShowColliders,
+FILE_OT_SetAssetType,
+DATA_OT_FixOperator,
 
 #Panels
 VIEW3D_PT_UI_Sample,

@@ -1,6 +1,6 @@
 import bpy  # type: ignore
 from ..constants import get_operator
-from ..helpers.usd_helpers import is_collision_mesh
+from ..scene_validation.rules import is_collision_mesh
 
 class OBJECT_OT_FixAllNames(bpy.types.Operator):
     bl_idname = get_operator("fix_all_names")

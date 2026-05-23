@@ -1,5 +1,5 @@
 import bpy #type: ignore
-from rules import missing_collision, missing_material, convex_collision, wrong_data_name, wrong_purpose
+from .rules import missing_collision, missing_material, convex_collision, wrong_data_name, wrong_purpose
 
 def scene_validator(context):
     settings = context.scene.usd_validator_settings
@@ -24,12 +24,21 @@ def scene_validator(context):
         results.append(wrong_data_name(obj))
         results.append(wrong_purpose(obj))
 
-    for result in results:
-        item = cache.get(result.error_type).add()
-        item.type = result.error_type
-        item.object_name = result.error_object
-        item.message = result.error_message
-        item.is_critical = result.is_critical
+    for result_list in results:
+        for result in result_list:
+            
+            error_collection = getattr(cache, result.error_type, None)
+            if error_collection is None:
+                continue
+
+            item = error_collection.add()
+            item.type = result.error_type
+            item.object_name = result.error_object
+            item.message = result.error_message
+            item.is_critical = result.is_critical
+            scene_valid = False
+
+    return scene_valid
 
 def is_excluded(obj):
     if not obj:

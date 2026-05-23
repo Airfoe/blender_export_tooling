@@ -14,6 +14,9 @@ def missing_collision(obj) -> list[ValidationResult]:
     results = []
     name = obj.name.lower()
     
+    if obj.type != "MESH":
+        return results
+
     if is_collision_mesh(obj):
         return results
 
@@ -34,6 +37,9 @@ def missing_collision(obj) -> list[ValidationResult]:
 
 def missing_material(obj) -> list[ValidationResult]:
     results = []
+
+    if obj.type != "MESH":
+        return results
 
     if is_collision_mesh(obj):
         return results
@@ -130,6 +136,7 @@ def wrong_data_name(obj) -> list[ValidationResult]:
             )
 
     return results
+
 # helpers
 
 def has_wrong_obj_name(obj, prefix_data):
