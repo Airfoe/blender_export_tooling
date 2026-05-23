@@ -13,7 +13,7 @@ def new_operator(name, func, data:dict):
 
     from .validator import scene_validator
     class DynamicOperator(bpy.types.Operator):
-        bl_idname = f"airfoe_fixer.{name}"
+        bl_idname = f"airfoe_ephemeral_fixer.{name}"
         bl_label = name
 
         def execute(self, context):

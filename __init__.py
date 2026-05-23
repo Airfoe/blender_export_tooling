@@ -1,7 +1,8 @@
 import bpy  # type: ignore
-from bpy.props import BoolProperty, PointerProperty
+from bpy.props import BoolProperty, PointerProperty #type: ignore
 
-from .ValidatorPropertyGroup import USD_PG_ValidatorSettings, USD_PG_ExportHookSettings
+from .ValidatorPropertyGroup import USD_PG_ExportHookSettings
+from .scene_validation.PropertyGroups import USD_PG_ValidatorSettings
 from .generated_classes import CLASSES
 
 

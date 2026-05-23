@@ -24,7 +24,10 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
         # remove dynamic operators
         from ..scene_validation.fixer_factory import REGISTERED_OPERATORS
         for operator in REGISTERED_OPERATORS:
-            bpy.utils.unregister_class(operator)
+            try:
+                bpy.utils.unregister_class(operator)
+            except Exception as e:
+                print(e)
         return {"FINISHED"}
 
     def draw(self, context):

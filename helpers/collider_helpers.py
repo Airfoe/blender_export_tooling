@@ -1,11 +1,14 @@
 import bpy #type: ignore
 
+from .generic_helper import run_isolated
+
+
 def quick_collision(objects: list, context):
     for obj in objects:
-                if obj.type != "MESH":
-                    continue
-                collider = convex_hull_duplicate(context,obj)
-                set_as_colliders(obj, [collider])
+        if obj.type != "MESH":
+            continue
+        collider = convex_hull_duplicate(context, obj)
+        set_as_colliders(obj, [collider])
 
 
 
@@ -32,25 +35,19 @@ def set_as_colliders(obj, collider):
 
 
 def convex_hull_duplicate(context, obj):
-        sel_objects = context.selected_objects
-        for sel_obj in sel_objects:
-            sel_obj.select_set(False)
-
-        new_obj = duplicate_object(obj)
-        new_obj.select_set(False)
+    new_obj = duplicate_object(obj)
+    apply_convex_hull(context, new_obj)
+    return new_obj
 
 
-        bpy.context.view_layer.objects.active = new_obj
-        bpy.ops.object.mode_set(mode='EDIT')
+def apply_convex_hull(context, obj):
+
+    def isolation():
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.convex_hull()
-        bpy.ops.object.mode_set(mode='OBJECT')
+    run_isolated(context, isolation, obj, [obj], mode="EDIT")
 
-        # restoring user selection
-        for obj in sel_objects:
-            obj.select_set(True)
 
-        return new_obj
 
 def duplicate_object(src):
     new_obj = src.copy()
