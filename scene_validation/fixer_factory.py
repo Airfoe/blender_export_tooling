@@ -1,0 +1,28 @@
+import bpy #type: ignore
+REGISTERED_OPERATORS = []
+
+
+def make_fixer(name, func, data:dict):
+    op = new_operator(name, func, data)
+    register_operator(op)
+    return op, op.bl_idname
+
+def new_operator(name, func, data:dict):
+
+    passed_data = data
+
+    from .validator import scene_validator
+    class DynamicOperator(bpy.types.Operator):
+        bl_idname = f"airfoe_ephemeral_fixer.{name}"
+        bl_label = name
+
+        def execute(self, context):
+            func(context, passed_data)
+            scene_validator(context=context)
+            return {'FINISHED'}
+        
+    return DynamicOperator
+
+def register_operator(cls):
+    bpy.utils.register_class(cls)
+    REGISTERED_OPERATORS.append(cls)
