@@ -18,7 +18,4 @@ class OBJECT_OT_MakeCollider(bpy.types.Operator):
     def execute(self, context):
         set_as_colliders(context.active_object, context.selected_objects)
         return {"FINISHED"}
-=======
-        set_as_colliders(context.active_object, context.selected_objects)
-        return {"FINISHED"}
->>>>>>> f9927923df2b44fa0ffec45a2d761c696cc70ab9
+
