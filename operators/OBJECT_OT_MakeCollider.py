@@ -1,5 +1,6 @@
 import bpy #type: ignore
 from ..constants import get_operator
+from ..helpers.collider_helpers import set_as_colliders
 class OBJECT_OT_MakeCollider(bpy.types.Operator):
     bl_idname = get_operator("make_collider")
     bl_label = "Make Collider Objects"
@@ -15,6 +16,7 @@ class OBJECT_OT_MakeCollider(bpy.types.Operator):
         return True
 
     def execute(self, context):
+<<<<<<< HEAD
         active_obj = context.active_object
         old_and_new_colliders = []
         old_and_new_colliders.extend(context.selected_objects)
@@ -31,3 +33,7 @@ class OBJECT_OT_MakeCollider(bpy.types.Operator):
                 collider.display_type = 'WIRE'
                 collider["purpose"] = "proxy"
         return {"FINISHED"}
+=======
+        set_as_colliders(context.active_object, context.selected_objects)
+        return {"FINISHED"}
+>>>>>>> f9927923df2b44fa0ffec45a2d761c696cc70ab9

@@ -61,7 +61,7 @@ def is_blender_class(node: ast.ClassDef):
 
     return any(
         tag in name
-        for tag in ("_OT_", "_PT_", "_PG_", "_UL_")
+        for tag in ("_OT_", "_PT_", "_PG_", "Preferences")
     )
 
 def module_import_path(py_file: Path):

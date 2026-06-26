@@ -1,6 +1,6 @@
 import bpy  # type: ignore
 
-from ..helpers.usd_helpers import usd_validator
+from ..scene_validation.validator import scene_validator
 from ..constants import get_operator
 from .OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
 
@@ -14,13 +14,20 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
     validation_results = None
 
     def invoke(self, context, event):
-        usd_validator(context)
+        self.validation_results = scene_validator(context)
         return context.window_manager.invoke_props_dialog(
             self,
             width=600
         )
 
     def execute(self, context):
+        # remove dynamic operators
+        from ..scene_validation.fixer_factory import REGISTERED_OPERATORS
+        for operator in REGISTERED_OPERATORS:
+            try:
+                bpy.utils.unregister_class(operator)
+            except Exception as e:
+                print(e)
         return {"FINISHED"}
 
     def draw(self, context):

@@ -4,7 +4,6 @@ from ..constants import AddonProperties
 from ..operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from ..operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
 from ..operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
-from ..operators.OBJECT_OT_FixWrongPurpose import OBJECT_OT_FixWrongPurpose
 from ..operators.FILE_OT_SetAssetType import FILE_OT_SetAssetType
 class VIEW3D_PT_UI_Sample(bpy.types.Panel):
     bl_label = "Exporter"

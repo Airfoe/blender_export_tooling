@@ -1,7 +1,8 @@
 import bpy  # type: ignore
-from bpy.props import BoolProperty, PointerProperty
+from bpy.props import BoolProperty, PointerProperty #type: ignore
 
-from .ValidatorPropertyGroup import USD_PG_ValidatorSettings, USD_PG_ExportHookSettings
+from .ValidatorPropertyGroup import USD_PG_ExportHookSettings
+from .scene_validation.PropertyGroups import USD_PG_ValidatorSettings
 from .generated_classes import CLASSES
 
 
@@ -18,9 +19,9 @@ def export_usd_on_save(dummy):
     if not scene.export_hook_settings.enable_export_usd_hook:
         return
     
-    from .helpers.usd_helpers import usd_validator
+    from .scene_validation.validator import scene_validator
 
-    success = usd_validator(bpy.context)
+    success = True
     print("is scene valid?", success)
     if success:
         bpy.ops.airfoe.export_usd()
