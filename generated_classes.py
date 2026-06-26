@@ -24,11 +24,6 @@ from .preferences import Airfoe_Preferences
 CLASSES = (
 
 #preferences
-<<<<<<< HEAD
-Airfoe_Preferences,
-=======
-Preferences,
->>>>>>> f9927923df2b44fa0ffec45a2d761c696cc70ab9
 
 #Property Groups
 USD_PG_ExportHookSettings,
