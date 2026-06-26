@@ -6,7 +6,6 @@ class OBJECT_OT_MakeCollider(bpy.types.Operator):
     bl_description = "Select the specified object"
     bl_options = {"REGISTER", "UNDO"}
 
-
     @classmethod
     def poll(cls, context):
         if context.active_object is None:
@@ -14,7 +13,6 @@ class OBJECT_OT_MakeCollider(bpy.types.Operator):
         if len(context.selected_objects) < 2:
             return False
         return True
-
 
     def execute(self, context):
         active_obj = context.active_object

@@ -1,6 +1,5 @@
 import bpy #type: ignore
 import bpy.types #type: ignore
-# Make `pxr` module available, for running as `bpy` PIP package.
 bpy.utils.expose_bundled_modules()
 from pxr import UsdGeom #type: ignore
 from pathlib import Path
@@ -24,16 +23,13 @@ def set_usd_purpose(stage):
 
     valid_purposes = {"default", "render", "proxy", "guide"}
 
-
     for prim in stage.Traverse():
         if not prim.IsA(UsdGeom.Imageable):
             continue
 
         imageable = UsdGeom.Imageable(prim)
-
         attr = prim.GetAttribute("userProperties:purpose")
         purpose = attr.Get() if attr and attr.HasAuthoredValue() else None
-
         if purpose and purpose in valid_purposes:
             imageable.CreatePurposeAttr().Set(purpose)
 
@@ -41,10 +37,8 @@ def set_usd_purpose(stage):
             imageable.CreatePurposeAttr().Set("proxy")
 
 def link_asset(prim_map, stage):
-
-
     to_replace = []
-
+    
     for prim in stage.Traverse():
         items = prim_map.get(prim.GetPath())
         if not items:
@@ -55,7 +49,6 @@ def link_asset(prim_map, stage):
         if isinstance(obj, bpy.types.Object):
             if obj.type == "EMPTY" and obj.instance_type == "COLLECTION":
                 to_replace.append((prim.GetPath(), obj))
-
 
         for path, obj in to_replace:
             prim = stage.GetPrimAtPath(path)
@@ -72,12 +65,11 @@ def clear_subtree(stage, prim):
         stage.RemovePrim(child.GetPath())
 
 def safe_replace(stage, prim, replacement):
-    filepath = os.path.join(get_export_root(), "props", f"{replacement}.usda")
+    filepath = os.path.join(get_export_root(), "props", replacement, f"{replacement}.usda")
     if os.path.exists(filepath):
         clear_subtree(stage, prim)
         prim.GetReferences().ClearReferences()
-        prim.GetReferences().AddReference(f"./props/{replacement}.usda")
+        prim.GetReferences().AddReference(f"./props/{replacement}/{replacement}.usda")
     else:
         print(f"cant find {filepath}")
         return False
-

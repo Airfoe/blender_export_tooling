@@ -8,20 +8,8 @@ from ..constants import get_export_root
 
 from pxr import Usd, UsdGeom, Sdf, UsdPhysics #type: ignore
  
-def export_USD(name, asset_type):
-    filepath = bpy.data.filepath
-    if not filepath:
-        bpy.context.window_manager.report({"ERROR"}, "Please save the blend file before exporting.")
-        return
-    
-    export_root = get_export_root()
-    if asset_type == "scene":
-       export_dir = export_root
-    else:
-        export_dir = os.path.join(export_root, asset_type)
+def export_USD(export_path, root_name, export_collection):
 
-    os.makedirs(export_dir, exist_ok=True)
-    export_path = os.path.join(export_dir, f"{name}.usda")
 
 
     bpy.ops.wm.usd_export(
@@ -49,7 +37,7 @@ def export_USD(name, asset_type):
         sort_method='DEFAULT', 
         filter_glob='*.usd', 
         selected_objects_only=False, 
-        collection='', 
+        collection=export_collection, 
         rename_uvmaps=True, 
 
         only_deform_bones=False, 
@@ -65,7 +53,7 @@ def export_USD(name, asset_type):
         overwrite_textures=False, 
         relative_paths=True, 
         xform_op_mode='TRS', 
-        root_prim_path=f'/{name}_root', 
+        root_prim_path=f'/{root_name}_root', 
         export_custom_properties=True, 
         custom_properties_namespace='userProperties', 
         accessibility_label='', 

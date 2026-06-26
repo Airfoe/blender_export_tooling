@@ -19,9 +19,10 @@ def get_manifest():
     return manifest
 
 
-def get_export_root():
+def get_export_root(context):
     from pathlib import Path
-    return Path("X:\\PROD\\_export")
+    root_path = context.scene.export_hook_settings.export_root_directory
+    return Path(root_path)
 
 def get_preferences():
     # No context needed, directly get addon preferences by package name

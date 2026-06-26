@@ -22,10 +22,11 @@ from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
 from .operators.USD_OT_USDHook import USD_OT_USDHook
 from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
 from .panels.VIEW_3D_PT_SceneTools import VIEW3D_PT_SceneTools
-
+from .preferences import Airfoe_Preferences
 CLASSES = (
 
 #preferences
+Airfoe_Preferences,
 
 #Property Groups
 USD_PG_ValidationItem,
