@@ -45,4 +45,7 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
             root_name=stem,
             export_collection=export_collection,
         )
+
+        self.report({'INFO'}, message = f"exported {export_collection} as {filename}")
+        self.collection = ""
         return {"FINISHED"}
