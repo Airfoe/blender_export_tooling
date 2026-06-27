@@ -28,7 +28,6 @@ def scene_validator(context, rules: list[Callable] = default_rules):
         if is_excluded(obj):
             continue
 
-        print(obj.name, obj.data.name)
         for rule in rules:
             results.extend(rule(obj))
 

@@ -15,7 +15,6 @@ def missing_collision(obj) -> list[ValidationResult]:
     from .fixes import fix_missing_collision
 
     missing_collision_results = []
-    name = obj.data.name
     
     if obj.type != "MESH":
         return missing_collision_results
@@ -23,6 +22,7 @@ def missing_collision(obj) -> list[ValidationResult]:
     if is_collision_mesh(obj):
         return missing_collision_results
 
+    name = obj.data.name
     for child in obj.children:
         if child.name.startswith(f"UCX_{name}"):
             return missing_collision_results

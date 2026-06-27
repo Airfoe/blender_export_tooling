@@ -1,8 +1,7 @@
 import bpy # type: ignore
 import os
-from ..constants import get_export_root
 
- 
+
 def export_USD(export_path, root_name, export_collection):
 
 

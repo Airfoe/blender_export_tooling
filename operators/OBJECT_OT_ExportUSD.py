@@ -31,7 +31,7 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
             export_collection = stem
             filename = f"{stem}.{filetype}"
 
-        export_root = get_export_root(context)
+        export_root = get_export_root()
         if asset_type == "scene":
             export_dir = export_root
         else:

@@ -19,9 +19,9 @@ def get_manifest():
     return manifest
 
 
-def get_export_root(context):
+def get_export_root():
     from pathlib import Path
-    root_path = context.scene.export_hook_settings.export_root_directory
+    root_path = bpy.context.scene.export_hook_settings.export_root_directory
     return Path(root_path)
 
 def get_preferences():
