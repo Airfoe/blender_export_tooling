@@ -66,14 +66,16 @@ def link_asset(prim_map, stage):
 
     t_replace_start = time.perf_counter()
     for path, obj in to_replace:
+        
         prim = stage.GetPrimAtPath(path)
 
         if not prim.IsValid():
             continue
 
-        success = safe_replace(stage, prim, obj.name)
-        if success:
-            print(f"Replaced payload at {path} with {obj.name}.usda")
+        if obj.instance_collection:
+            success = safe_replace(stage, prim, obj.instance_collection.name)
+            if success:
+                print(f"Replaced payload at {path} with {obj.name}.usda")
     t_replace_end = time.perf_counter()
 
     print(f"[link_asset] traversal:   {(t_traverse_end - t_traverse_start) * 1000:.1f} ms  ({len(to_replace)} collection instances found)")
