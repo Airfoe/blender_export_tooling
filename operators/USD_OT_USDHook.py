@@ -1,7 +1,8 @@
 import bpy #type: ignore
 import bpy.types #type: ignore
 bpy.utils.expose_bundled_modules()
-from pxr import UsdGeom #type: ignore
+from pxr import UsdGeom, Sdf, Kind #type: ignore
+from pxr import Usd #type: ignore
 from pathlib import Path
 import os
 import time
@@ -19,6 +20,7 @@ class USD_OT_USDHook(bpy.types.USDHook):
     def on_export(export_context):
         global EXPORT_ROOT
         EXPORT_ROOT = get_export_root()
+        parent_class = bpy.context.scene.export_hook_settings.parent_class
         prim_map = export_context.get_prim_map()
         stage = export_context.get_stage()
 
@@ -26,10 +28,24 @@ class USD_OT_USDHook(bpy.types.USDHook):
         link_asset(prim_map, stage)
         t1 = time.perf_counter()
         set_usd_purpose(stage)
+        #set_parent_class(stage, parent_class)
+        set_kind_assembly(stage)
         t2 = time.perf_counter()
         print(f"[USDHook] link_asset:    {(t1 - t0) * 1000:.1f} ms")
         print(f"[USDHook] set_usd_purpose: {(t2 - t1) * 1000:.1f} ms")
         print(f"[USDHook] total hook:    {(t2 - t0) * 1000:.1f} ms")
+
+def set_parent_class(stage, parent):
+    root_prim = stage.GetDefaultPrim()
+    if not root_prim or not root_prim.IsValid():
+        return
+    root_prim.CreateAttribute("userProperties:parentClass", Sdf.ValueTypeNames.Token).Set(parent)
+
+def set_kind_assembly(stage):
+    root_prim = stage.GetDefaultPrim()
+    if not root_prim or not root_prim.IsValid():
+        return
+    Usd.ModelAPI(root_prim).SetKind(Kind.Tokens.assembly)
 
 def set_usd_purpose(stage):
 
@@ -66,7 +82,7 @@ def link_asset(prim_map, stage):
 
     t_replace_start = time.perf_counter()
     for path, obj in to_replace:
-        
+
         prim = stage.GetPrimAtPath(path)
 
         if not prim.IsValid():

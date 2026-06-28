@@ -57,6 +57,7 @@ class VIEW3D_PT_UI_Sample(bpy.types.Panel):
             export_high = row.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export High", icon="EXPORT")
             export_high.collection = coll_name
             box.prop(context.scene.export_hook_settings, "high_poly_collection", text="High Collection")
+            box.prop(context.scene.export_hook_settings, "parent_class", text = "Type")
 
 
         column = box.column(align=True)

@@ -18,6 +18,16 @@ class USD_PG_ExportHookSettings(bpy.types.PropertyGroup):
         default = "usda"
     )#type: ignore
 
+    parent_class: bpy.props.EnumProperty(
+        items = [
+            ("actor", "actor", "Default Actor - no exted functionality"),
+            ("BP_ItemContainer", "BP_ItemContainer", "Marks Asset as Item Container"),
+            ("BP_IngredientProcessor", "BP_IngredientProcessor", "Marks Asset as Ingredient Processor"),
+            ("BP_Ingredient", "BP_Ingredient", "Marks Asset as Ingredient")
+        ],
+        default = "actor"
+        )#type: ignore
+
     export_root_directory: bpy.props.StringProperty(
         subtype = 'DIR_PATH',
         default = "X:\\PROD\\_export\\"
