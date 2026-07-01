@@ -26,12 +26,11 @@ def set_as_colliders(obj, collider):
         else:
             collider.name = f"UCX_{active_obj.data.name}_{index:02d}"
             collider.data.name = collider.name
+            saved_matrix = collider.matrix_world.copy()
             collider.parent = active_obj
+            collider.matrix_world = saved_matrix
             collider.display_type = 'WIRE'
             collider["purpose"] = "collision"
-            collider.location = [0,0,0]
-            collider.rotation_euler = [0,0,0]
-            collider.scale = [1,1,1]
 
 
 def convex_hull_duplicate(context, obj):

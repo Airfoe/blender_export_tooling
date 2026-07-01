@@ -13,15 +13,25 @@ def export_usd_on_save(dummy):
         return
 
     scene = bpy.context.scene
+    asset_type = scene.export_hook_settings.usd_asset_type
+    
+    # generates preview for assets
+    if asset_type == 'props':
+        for col in bpy.data.collections:
+                if col.asset_data is not None:
+                    col.asset_generate_preview()
+
     if not scene or not hasattr(scene, "export_hook_settings"):
         return
 
     if not scene.export_hook_settings.enable_export_usd_hook:
         return
     
-    from .scene_validation.validator import scene_validator
 
+    # WIP
+    from .scene_validation.validator import scene_validator
     success = True
+
     print("is scene valid?", success)
     if success:
         bpy.ops.airfoe.export_usd()

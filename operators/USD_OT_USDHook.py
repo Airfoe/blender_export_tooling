@@ -28,7 +28,7 @@ class USD_OT_USDHook(bpy.types.USDHook):
         link_asset(prim_map, stage)
         t1 = time.perf_counter()
         set_usd_purpose(stage)
-        #set_parent_class(stage, parent_class)
+        set_parent_class(stage, parent_class)
         set_kind_assembly(stage)
         t2 = time.perf_counter()
         print(f"[USDHook] link_asset:    {(t1 - t0) * 1000:.1f} ms")

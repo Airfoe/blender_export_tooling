@@ -52,9 +52,7 @@ class FILE_OT_MakeAsset(bpy.types.Operator):
             layout.label(text=line)
 
     def execute(self, context):
-
         old_transform = self.move_objects(context)
-        print(old_transform)
         collection_instance = self.save_collection_to_path(context)
         if collection_instance and old_transform:
             self.move_collection_back(collection=collection_instance, old_transform=old_transform)
@@ -69,7 +67,6 @@ class FILE_OT_MakeAsset(bpy.types.Operator):
         print(f"moved {collection.name} to {old_transform}")
 
     def move_objects(self, context):
-
         objects_to_move = context.selected_objects
         if not objects_to_move:
             return None
@@ -143,6 +140,8 @@ class FILE_OT_MakeAsset(bpy.types.Operator):
 
         data_to_write = {asset_collection} | set(selected_objects)
         
+        asset_collection.asset_mark()
+        asset_collection.asset_data.catalog_id = "919b878c-dcf2-44ec-9764-cb78f4c3f2d3"          # uuid is defined in X:\PROD\3D\blender_asset.cats.txt
 
         os.makedirs(self.filepath, exist_ok=True)
         bpy.data.libraries.write(self.filepath, data_to_write, fake_user=True)
