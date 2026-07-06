@@ -30,6 +30,7 @@ class USD_OT_USDHook(bpy.types.USDHook):
         set_usd_purpose(stage)
         set_parent_class(stage, parent_class)
         set_kind_assembly(stage)
+        set_single_sided(stage)
         t2 = time.perf_counter()
         print(f"[USDHook] link_asset:    {(t1 - t0) * 1000:.1f} ms")
         print(f"[USDHook] set_usd_purpose: {(t2 - t1) * 1000:.1f} ms")
@@ -110,3 +111,11 @@ def safe_replace(stage, prim, replacement):
     else:
         print(f"cant find {filepath}")
         return False
+    
+def set_single_sided(stage):
+    for prim in stage.Traverse():
+        if not prim.IsA(UsdGeom.Mesh):
+            continue
+
+        mesh = UsdGeom.Mesh(prim)
+        mesh.CreateDoubleSidedAttr().Set(False)

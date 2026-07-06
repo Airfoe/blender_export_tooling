@@ -71,7 +71,7 @@ def export_USD(export_path, root_name, export_collection):
         export_points=True, 
         export_volumes=False, 
 
-        triangulate_meshes=False, 
+        triangulate_meshes=True, 
         quad_method='SHORTEST_DIAGONAL', 
         ngon_method='BEAUTY', usdz_downscale_size='KEEP', 
         usdz_downscale_custom_size=128, 
