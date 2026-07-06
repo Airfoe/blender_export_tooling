@@ -1,222 +1,191 @@
-import bpy #type: ignore
-import bmesh #type: ignore
-from .fixer_factory import make_fixer
-from typing import Callable
+import re
+import bmesh  # type: ignore
+from .core import Issue, rule, WARNING, ERROR
 
-class ValidationResult():
-    def __init__(self, error_type: str, error_object:str, error_message:str, is_critical:bool, fixer:str | None = None) -> None: 
-        self.error_type:str = error_type
-        self.error_object:str = error_object
-        self.error_message:str = error_message
-        self.is_critical:bool = is_critical
-        self.fixer: str | None = fixer
+# UE collision prefixes: convex, box, sphere, capsule
+COLLISION_PREFIXES = ("UCX_", "UBX_", "USP_", "UCP_")
 
-def missing_collision(obj) -> list[ValidationResult]:
-    from .fixes import fix_missing_collision
+DATA_PREFIXES = {
+    "EMPTY": "GRP_",
+    "MESH": "GEO_",
+    "CURVE": "CRV_",
+}
 
-    missing_collision_results = []
-    
-    if obj.type != "MESH":
-        return missing_collision_results
+CONVEXITY_THRESHOLD = 0.99
 
-    if is_collision_mesh(obj):
-        return missing_collision_results
 
-    name = obj.data.name
-    for child in obj.children:
-        if child.name.startswith(f"UCX_{name}"):
-            return missing_collision_results
+@rule
+def missing_collision(obj) -> list[Issue]:
+    if obj.type != "MESH" or is_collision_mesh(obj):
+        return []
 
-    _, fixer = make_fixer("fix_collision", fix_missing_collision, {"obj": obj})
+    if any(is_collision_mesh(child) for child in obj.children):
+        return []
 
-    missing_collision_results.append(
-        ValidationResult(
-            error_type="missing_collision",
-            error_object=obj.name,
-            error_message=f"{obj.name} is missing collisions",
-            is_critical=False,
-            fixer = fixer
-        )
-    )
+    return [Issue(
+        category="missing_collision",
+        object_name=obj.name,
+        message=f"{obj.name} is missing collisions",
+        severity=WARNING,
+        fix_id="create_collision",
+    )]
 
-    print("missing collision: ",len(missing_collision_results))
-    return missing_collision_results
 
-def missing_material(obj) -> list[ValidationResult]:
-    missing_material_results = []
+@rule
+def missing_material(obj) -> list[Issue]:
+    if obj.type != "MESH" or is_collision_mesh(obj):
+        return []
 
-    if obj.type != "MESH":
-        return missing_material_results
+    if len(obj.material_slots) > 0:
+        return []
 
-    if is_collision_mesh(obj):
-        return missing_material_results
+    return [Issue(
+        category="missing_material",
+        object_name=obj.name,
+        message=f"{obj.name} doesnt have a material",
+        severity=WARNING,
+    )]
 
-    if len(obj.material_slots) == 0:
-        missing_material_results.append(
-            ValidationResult(
-                error_type="missing_material",
-                error_object=obj.name,
-                error_message=f"{obj.name} doesnt have a material",
-                is_critical=False
-            )
-        )
 
-    print("missing material: ", len(missing_material_results))
-    return missing_material_results
-
-def convex_collision(obj) -> list[ValidationResult]:
-    convex_collision_results = []
-
-    if not is_collision_mesh(obj):
-        return convex_collision_results
+@rule
+def concave_collider(obj) -> list[Issue]:
+    if not is_collision_mesh(obj) or obj.type != "MESH":
+        return []
 
     conv = convexity(obj)
-    if conv < 0.99:
+    if conv >= CONVEXITY_THRESHOLD:
+        return []
 
-        from .fixes import fix_convex_collision
-        data = {
-            "parent": obj.parent,
-            "obj": obj
-        }
-        _, fixer = make_fixer("fix_convexity", fix_convex_collision, data)
+    return [Issue(
+        category="concave_collider",
+        object_name=obj.name,
+        message=f"{obj.name} has a convexity of {conv:.2f}",
+        severity=ERROR,
+        fix_id="make_convex",
+    )]
 
-        convex_collision_results.append(
-            ValidationResult(
-                error_type="concave_colliders",
-                error_object=obj.name,
-                error_message=f"{obj.name} has a convexity of {conv}",
-                is_critical=True,
-                fixer = fixer
-            )
-        )
 
-    print("concave collision: ", len(convex_collision_results))
-    return convex_collision_results
-
-def wrong_purpose(obj) -> list[ValidationResult]:
-    wrong_purpose_results = []
+@rule
+def wrong_purpose(obj) -> list[Issue]:
     purpose = obj.get("purpose")
 
     if is_collision_mesh(obj):
         if purpose not in {"proxy", "collision"}:
-            wrong_purpose_results.append(
-                ValidationResult(
-                    error_type="wrong_purposes",
-                    error_object=obj.name,
-                    error_message=f"{obj.name} should have proxy or collision purpose",
-                    is_critical=True
-                )
-            )
+            return [Issue(
+                category="wrong_purpose",
+                object_name=obj.name,
+                message=f"{obj.name} should have proxy or collision purpose",
+                severity=ERROR,
+                fix_id="set_collision_purpose",
+            )]
 
-    else:
-        if purpose in {"proxy", "collision"}:
-            wrong_purpose_results.append(
-                ValidationResult(
-                    error_type="wrong_purposes",
-                    error_object=obj.name,
-                    error_message=f"{obj.name} should not have proxy or collision purpose",
-                    is_critical=True
-                )
-            )
+    elif purpose in {"proxy", "collision"}:
+        return [Issue(
+            category="wrong_purpose",
+            object_name=obj.name,
+            message=f"{obj.name} should not have proxy or collision purpose",
+            severity=ERROR,
+            fix_id="clear_purpose",
+        )]
 
-    print("wrong purpose: ", len(wrong_purpose_results))
-    return wrong_purpose_results
+    return []
 
-def wrong_data_names(obj) -> list[ValidationResult]:
-    prefixes = {
-        "EMPTY": "GRP_",
-        "MESH": "GEO_",
-        "CURVE": "CRV_",
-    }
 
-    wrong_name_results = []
+@rule
+def wrong_name(obj) -> list[Issue]:
     if is_collision_mesh(obj):
-        if has_wrong_collision_name(obj):
-            wrong_name_results.append(
-                ValidationResult(
-                    error_type="wrong_data_names",
-                    error_object=obj.name,
-                    error_message=f"{obj.name} has wrong collision name",
-                    is_critical=True
-                )
-            )
+        return collision_name_issues(obj)
+    return data_name_issues(obj)
 
-    else:
-        prefix = prefixes.get(obj.type)
-        if prefix: 
-            result = has_wrong_data_names(obj, prefix)
-            wrong_name_results.extend(result)
-            
-    print("wrong names: ", len(wrong_name_results))
-    return wrong_name_results
 
 # helpers
 
-def has_wrong_data_names(obj, prefix_data):
-    results = []
-    name = obj.name
-    if not obj.name.startswith(prefix_data):
-        results.append( 
-            ValidationResult(
-                    error_type="wrong_data_names",
-                    error_object=obj.name,
-                    error_message=f"Object name doesnt start with {prefix_data}",
-                    is_critical=False
-                )   
-            )
-    prefix_removed = name.removeprefix(prefix_data)
-    data_name = obj.data.name if obj.data else ""
-    false_data_name = data_name != prefix_removed
-    if false_data_name:
-        results.append( 
-            ValidationResult(
-                    error_type="wrong_data_names",
-                    error_object=obj.name,
-                    error_message=f"datablock name and obj name dont match",
-                    is_critical=True
-                )
-            )
-    return results
+def collision_name_issues(obj) -> list[Issue]:
+    if obj.parent is None:
+        return [Issue(
+            category="wrong_name",
+            object_name=obj.name,
+            message=f"{obj.name} is a collider without a parent",
+            severity=ERROR,
+        )]
 
-def has_wrong_collision_name(obj):
-    raw_name = obj.name.removeprefix("UCX_")
-    if not obj.parent.data.name.startswith(raw_name):
-        return None
-    return None
+    # UE convention: UCX_<RenderMeshName> with optional _## suffix
+    expected = obj.name[:4].upper() + parent_base_name(obj.parent)
+    if not re.fullmatch(re.escape(expected) + r"(_\d+)?", obj.name):
+        return [Issue(
+            category="wrong_name",
+            object_name=obj.name,
+            message=f"{obj.name} should be named {expected}_##",
+            severity=ERROR,
+            fix_id="rename_collider",
+        )]
 
-def convexity(obj):
+    if obj.data and obj.data.name != obj.name:
+        return [Issue(
+            category="wrong_name",
+            object_name=obj.name,
+            message=f"{obj.name}: datablock name and object name dont match",
+            severity=ERROR,
+            fix_id="sync_data_name",
+        )]
+
+    return []
+
+
+def data_name_issues(obj) -> list[Issue]:
+    prefix = DATA_PREFIXES.get(obj.type)
+    if not prefix:
+        return []
+
+    issues = []
+    if not obj.name.startswith(prefix):
+        issues.append(Issue(
+            category="wrong_name",
+            object_name=obj.name,
+            message=f"{obj.name} doesnt start with {prefix}",
+            severity=WARNING,
+        ))
+
+    if obj.data and obj.data.name != obj.name.removeprefix(prefix):
+        issues.append(Issue(
+            category="wrong_name",
+            object_name=obj.name,
+            message=f"{obj.name}: datablock name and object name dont match",
+            severity=ERROR,
+            fix_id="sync_data_name",
+        ))
+
+    return issues
+
+
+def parent_base_name(parent):
+    return parent.data.name if parent.data else parent.name
+
+
+def is_collision_mesh(obj) -> bool:
+    return obj.name.upper().startswith(COLLISION_PREFIXES)
+
+
+def convexity(obj) -> float:
+    """Volume of the mesh divided by the volume of its convex hull (1.0 = fully convex)."""
     bm = bmesh.new()
     bm.from_mesh(obj.data)
     bm.transform(obj.matrix_world)
-    
     original_volume = abs(bm.calc_volume())
-    hull_bm = bm.copy()
 
+    hull_bm = bm.copy()
     bmesh.ops.delete(
-        hull_bm, 
-        geom=hull_bm.faces[:] + hull_bm.edges[:], 
+        hull_bm,
+        geom=hull_bm.faces[:] + hull_bm.edges[:],
         context='FACES_ONLY'
     )
-
-    bmesh.ops.convex_hull(
-        hull_bm,
-        input=hull_bm.verts
-    )
-
+    bmesh.ops.convex_hull(hull_bm, input=hull_bm.verts)
     hull_bm.normal_update()
     hull_volume = abs(hull_bm.calc_volume())
 
     bm.free()
     hull_bm.free()
 
-    # womp womp, stopid calculator cant divide by 0
     if hull_volume == 0:
         return 0
-        
     return original_volume / hull_volume
-
-def is_collision_mesh(obj):
-    name = obj.name.lower()
-    if name.startswith(f"ucx_") or name.startswith(f"ubx_") or name.startswith(f"usp_"):
-        return True
-    return False

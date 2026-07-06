@@ -1,8 +1,15 @@
 import bpy  # type: ignore
 
-from ..scene_validation.validator import scene_validator
 from ..constants import get_operator
+from ..scene_validation.core import CATEGORIES, ERROR
+from ..scene_validation.validator import validate_scene
 from .OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
+from .OBJECT_OT_FixValidationIssue import OBJECT_OT_FixValidationIssue
+
+SEVERITY_ICONS = {
+    "ERROR": "CANCEL",
+    "WARNING": "ERROR",  # blenders warning triangle
+}
 
 
 class OBJECT_OT_ValidateUSD(bpy.types.Operator):
@@ -11,105 +18,38 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
     bl_description = "Validate USD scene"
     bl_options = {"REGISTER", "UNDO"}
 
-    validation_results = None
-
     def invoke(self, context, event):
-        self.validation_results = scene_validator(context)
-        return context.window_manager.invoke_props_dialog(
-            self,
-            width=600
-        )
+        validate_scene(context)
+        return context.window_manager.invoke_props_dialog(self, width=600)
 
     def execute(self, context):
-        # remove dynamic operators
-        from ..scene_validation.fixer_factory import REGISTERED_OPERATORS
-        for operator in REGISTERED_OPERATORS:
-            try:
-                bpy.utils.unregister_class(operator)
-            except Exception as e:
-                print(e)
         return {"FINISHED"}
 
     def draw(self, context):
         layout = self.layout
-        settings = context.scene.usd_validator_settings
-        cache = settings.cache
+        cache = context.scene.usd_validator_settings.cache
+
         header_box = layout.box()
-        header_box.label(
-            text="USD Validation Report",
-            icon="INFO"
-        )
+        header_box.label(text="USD Validation Report", icon="INFO")
 
-        # ---------------------------------------
-        # SECTIONS
-        # ---------------------------------------
+        for category, info in CATEGORIES.items():
+            items = [item for item in cache.issues if item.category == category]
+            self.draw_section(context, category, info, items)
 
-        self.draw_error_section(
-            context=context,
-            title="Objects Missing Collisions",
-            toggle_prop="ShowMissingCollision",
-            items=cache.missing_collision,
-            icon="MESH_CUBE"
-        )
-
-        self.draw_error_section(
-            context=context,
-            title="Objects Missing Materials",
-            toggle_prop="ShowMissingMaterial",
-            items=cache.missing_material,
-            icon="MATERIAL"
-        )
-
-        self.draw_error_section(
-            context=context,
-            title="Concave Colliders",
-            toggle_prop="ShowConcaveCollider",
-            items=cache.concave_colliders,
-            icon="MOD_PHYSICS"
-        )
-
-        self.draw_error_section(
-            context=context,
-            title="Wrong Purposes",
-            toggle_prop="ShowWrongPurpose",
-            items=cache.wrong_purposes,
-            icon="ERROR"
-        )
-
-        self.draw_error_section(
-            context=context,
-            title="Wrong Data Names",
-            toggle_prop="ShowWrongDataName",
-            items=cache.wrong_data_names,
-            icon="INFO"
-        )
-
-    def draw_error_section(self,context,title,toggle_prop,items,icon="ERROR"):
-        if not items:
-            box = self.layout.box()
-            row = box.row()
-            row.label(
-            text=f"{title}: {len(items)}",
-            icon="CHECKMARK"
-            )
-            return
-        
-
-        settings = context.scene.usd_validator_settings
+    def draw_section(self, context, category, info, items):
         box = self.layout.box()
 
+        if not items:
+            box.label(text=f"{info['title']}: 0", icon="CHECKMARK")
+            return
 
-        # -----------------------------------
-        # Header
-        # -----------------------------------
-
+        settings = context.scene.usd_validator_settings
+        toggle_prop = f"show_{category}"
         is_open = getattr(settings, toggle_prop)
+        has_error = any(item.severity == ERROR for item in items)
 
-        
-        for item in items:
-            if item.level == "ERROR" and not is_open:
-                box.alert = True
-
+        # header, highlighted if it hides critical issues
+        box.alert = has_error and not is_open
         row = box.row(align=True)
         row.prop(
             settings,
@@ -118,63 +58,33 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
             emboss=False,
             icon="DOWNARROW_HLT" if is_open else "RIGHTARROW"
         )
-
-        row.label(
-            text=f"{title}: {len(items)}",
-            icon=icon
-        )
-
+        row.label(text=f"{info['title']}: {len(items)}", icon=info["icon"])
 
         if not is_open:
             return
+
+        box.alert = False
         content = box.column(align=True)
-
         for item in items:
-            if item.level == "ERROR":
-                content.alert = True
-
-            # -----------------------------------
-            # MESSAGE + SEVERITY
-            # -----------------------------------
-
-            icon_enum = {
-                "INFO": "INFO",
-                "ERROR": "CANCEL",
-                "WARNING": "DISCLOSURE_TRI_RIGHT"
-            }
-
             row = content.row(align=True)
+            row.alert = item.severity == ERROR
             row.label(
                 text=item.message,
-                icon=icon_enum.get(item.level, "ERROR")
+                icon=SEVERITY_ICONS.get(item.severity, "QUESTION")
             )
 
+            if item.object_name and item.object_name in bpy.data.objects:
+                row.operator(
+                    OBJECT_OT_SelectObject.bl_idname,
+                    text="",
+                    icon="RESTRICT_SELECT_OFF"
+                ).object_name = item.object_name
 
-
-            # -----------------------------------
-            # SELECT OBJECT
-            # -----------------------------------
-            if item.object_name:
-                obj = bpy.data.objects.get(item.object_name)
-                if obj:
-                    row.operator(
-                        OBJECT_OT_SelectObject.bl_idname,
-                        text="",
-                        icon="RESTRICT_SELECT_OFF"
-                    ).object_name = obj.name
-
-            # -----------------------------------
-            # FIX BUTTON
-            # -----------------------------------
-
-            if item.fix_operator:
+            if item.fix_id:
                 op = row.operator(
-                    item.fix_operator,
+                    OBJECT_OT_FixValidationIssue.bl_idname,
                     text="",
                     icon="CHECKMARK"
                 )
-                if item.fix_object_name:
-                    setattr(op, "object_name", item.fix_object_name)
-
-                if item.fix_data:
-                    setattr(op, "fix_data", item.fix_data)
+                op.fix_id = item.fix_id
+                op.object_name = item.object_name

@@ -28,17 +28,17 @@ def export_usd_on_save(dummy):
         return
     
 
-    # WIP
-    from .scene_validation.validator import scene_validator
-    success = True
+    # only export if the scene has no critical validation issues,
+    # otherwise show the validation report instead
+    from .scene_validation.validator import validate_scene, has_critical_issues
+    issues = validate_scene(bpy.context)
 
-    print("is scene valid?", success)
-    if success:
+    if has_critical_issues(issues):
+        bpy.ops.airfoe.validate_usd('INVOKE_DEFAULT')
+    else:
         bpy.ops.airfoe.export_usd()
         from .helpers.usd_helpers import send_usd_reload_request
         send_usd_reload_request()
-    else:
-        bpy.ops.airfoe.validate_usd('INVOKE_DEFAULT')
 
 
 def register():

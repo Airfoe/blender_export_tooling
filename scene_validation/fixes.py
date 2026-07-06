@@ -1,22 +1,54 @@
-import bpy #type: ignore
+import bpy  # type: ignore
+
 from ..helpers.collider_helpers import quick_collision, apply_convex_hull
+from .core import fixer
+from .rules import DATA_PREFIXES, is_collision_mesh, parent_base_name
 
-def fix_missing_collision(context, data):
-    quick_collision([data["obj"]], context)
 
-def fix_missing_material(context, data):
-    pass
+@fixer("create_collision")
+def create_collision(context, obj):
+    quick_collision([obj], context)
 
-def fix_convex_collision(context, data):
-    parent = data["parent"]
-    obj = data["obj"]
+
+@fixer("make_convex")
+def make_convex(context, obj):
     apply_convex_hull(context, obj)
 
-def fix_wrong_purpose(context, data):
-    pass
 
-def fix_missing_prefix(context, data):
-    pass
+@fixer("set_collision_purpose")
+def set_collision_purpose(context, obj):
+    # the USD hook maps "collision" to the proxy purpose on export
+    obj["purpose"] = "collision"
 
-def fix_wrong_dataname(context, data):
-    pass
+
+@fixer("clear_purpose")
+def clear_purpose(context, obj):
+    if "purpose" in obj:
+        del obj["purpose"]
+
+
+@fixer("rename_collider")
+def rename_collider(context, obj):
+    if obj.parent is None:
+        return
+    base = obj.name[:4].upper() + parent_base_name(obj.parent)
+    obj.name = free_collider_name(base)
+    if obj.data:
+        obj.data.name = obj.name
+
+
+@fixer("sync_data_name")
+def sync_data_name(context, obj):
+    if is_collision_mesh(obj):
+        obj.data.name = obj.name
+        return
+    prefix = DATA_PREFIXES.get(obj.type, "")
+    obj.data.name = obj.name.removeprefix(prefix)
+
+
+def free_collider_name(base):
+    """First unused UE style collider name: <base>_00, <base>_01, ..."""
+    index = 0
+    while f"{base}_{index:02d}" in bpy.data.objects:
+        index += 1
+    return f"{base}_{index:02d}"

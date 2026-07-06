@@ -1,62 +1,57 @@
-import bpy #type: ignore
-from .rules import missing_collision, missing_material, convex_collision, wrong_data_names, wrong_purpose
-from typing import Callable
+from pathlib import Path
+import bpy  # type: ignore
+from .core import RULES, ERROR
+from . import rules, fixes
 
 
-default_rules = [
-    missing_collision, 
-    missing_material, 
-    convex_collision, 
-    wrong_data_names, 
-    wrong_purpose
-    ]
+def validate_scene(context) -> list:
+    """Run all rules over the export collection, store the results in the cache and return them."""
+    cache = context.scene.usd_validator_settings.cache
+    cache.issues.clear()
 
-def scene_validator(context, rules: list[Callable] = default_rules):
-    settings = context.scene.usd_validator_settings
-    cache = settings.cache
-
-    cache.missing_collision.clear()
-    cache.missing_material.clear()
-    cache.concave_colliders.clear()
-    cache.wrong_purposes.clear()
-    cache.wrong_data_names.clear()
-    scene_valid = True
-
-    results = []
-    for obj in bpy.data.objects:
-
+    issues = []
+    for obj in get_export_objects():
         if is_excluded(obj):
             continue
+        for rule in RULES:
+            issues.extend(rule(obj))
 
-        for rule in rules:
-            results.extend(rule(obj))
+    for issue in issues:
+        item = cache.issues.add()
+        item.category = issue.category
+        item.object_name = issue.object_name
+        item.message = issue.message
+        item.severity = issue.severity
+        item.fix_id = issue.fix_id
+
+    return issues
 
 
-    print("overall issues: ", len(results))
-    print("-------------------------")
-    for result in results:
-        print(result.error_type)
-        error_collection = getattr(cache, result.error_type, None)
-        if error_collection is None:
-            print(result.error_type, " could not be added to cache")
-            continue
+def get_export_objects():
+    """Only the export collection gets exported, so only validate its objects
+    (including nested collections). Falls back to everything when there is
+    no export collection to look at yet."""
+    collection = get_export_collection()
+    if collection is None:
+        return bpy.data.objects
+    return collection.all_objects
 
-        item = error_collection.add()
-        item.type = result.error_type
-        item.object_name = result.error_object
-        item.message = result.error_message
-        item.is_critical = result.is_critical
-        if result.fixer:
-            item.fix_operator = result.fixer
-        scene_valid = False
-    return scene_valid
 
-def is_excluded(obj):
-    if not obj:
-        return True
+def get_export_collection():
+    # the exporter exports the collection named like the blend file (see OBJECT_OT_ExportUSD)
+    if not bpy.data.filepath:
+        return None
+    return bpy.data.collections.get(Path(bpy.data.filepath).stem)
 
+
+def has_critical_issues(issues) -> bool:
+    return any(issue.severity == ERROR for issue in issues)
+
+
+def is_excluded(obj) -> bool:
+    # linked library objects cant be edited here, so dont validate them
     if obj.library:
         return True
-
-    if obj.data and obj.data.library:
+    if obj.data is not None and obj.data.library:
         return True
+    return False

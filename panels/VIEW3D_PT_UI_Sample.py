@@ -65,6 +65,6 @@ class VIEW3D_PT_UI_Sample(bpy.types.Panel):
 
         column = box.column(align=True)
         column.scale_y = 1.5
-        #column.operator(OBJECT_OT_ValidateUSD.bl_idname, text=" Validate Scene", icon="INFO")
+        column.operator(OBJECT_OT_ValidateUSD.bl_idname, text="Validate Scene", icon="INFO")
         box.label(text = f"Asset Type: {context.scene.export_hook_settings.usd_asset_type}")
 
