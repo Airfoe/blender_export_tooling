@@ -47,8 +47,7 @@ class VIEW3D_PT_UI_Sample(bpy.types.Panel):
             row.operator(FILE_OT_SetAssetType.bl_idname, text = "Set as Scene", icon = "SCENE_DATA").asset_type = "scene"
 
         else:
-            split = row.split(factor=0.9, align=True)
-            split.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export", icon="EXPORT")
+            split = row.split(factor=0.1, align=True)
             split.prop(context.scene.export_hook_settings, "enable_export_usd_hook", text = "", toggle=True, icon="HOOK")
 
 
@@ -57,10 +56,19 @@ class VIEW3D_PT_UI_Sample(bpy.types.Panel):
             coll_name = ""
             if high_collection:
                 coll_name = high_collection.name
+            split.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export Low", icon="EXPORT")
+            
             export_high = row.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export High", icon="EXPORT")
             export_high.collection = coll_name
             box.prop(context.scene.export_hook_settings, "high_poly_collection", text="High Collection")
             box.prop(context.scene.export_hook_settings, "parent_class", text = "Type")
+        
+        elif context.scene.export_hook_settings.usd_asset_type == "scene":
+            split.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export Scene", icon="EXPORT").exporting_scene = True
+            box.prop(context.scene.export_hook_settings, "map_geo_collection", text = "geo")
+            box.prop(context.scene.export_hook_settings, "map_asset_collection", text = "assets")
+
+
 
 
         column = box.column(align=True)

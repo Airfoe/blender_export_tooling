@@ -17,6 +17,7 @@ from .operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
 from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
 from .operators.USD_OT_USDHook import USD_OT_USDHook
 from .panels.VIEW3D_PT_UI_Sample import VIEW3D_PT_UI_Sample
+from .panels.VIEW_3D_PT_Material import VIEW3D_PT_UI_Material
 from .panels.VIEW_3D_PT_SceneTools import VIEW3D_PT_SceneTools
 from .scene_validation.PropertyGroups import USD_PG_ValidationIssue
 from .scene_validation.PropertyGroups import USD_PG_ValidatorCache
@@ -51,5 +52,6 @@ USD_OT_USDHook,
 
 #Panels
 VIEW3D_PT_UI_Sample,
+VIEW3D_PT_UI_Material,
 VIEW3D_PT_SceneTools,
 )

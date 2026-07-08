@@ -11,6 +11,7 @@ class FILE_OT_MakeAsset(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     name: bpy.props.StringProperty() #type: ignore
+    asset_type: bpy.props.StringProperty(default="Props") #type:ignore
 
     def invoke(self, context, event):
         if context.active_object:
@@ -22,7 +23,7 @@ class FILE_OT_MakeAsset(bpy.types.Operator):
     def get_target_dir(self, context):
         filepath = Path(bpy.data.filepath)
         source = self.find_parent(filepath, "3D")
-        target_dir = os.path.join(str(source), "Props", self.name, "src", f"{self.name}.blend")
+        target_dir = os.path.join(str(source), self.asset_type, self.name, "src", f"{self.name}.blend")
         return target_dir
 
 
@@ -140,8 +141,10 @@ class FILE_OT_MakeAsset(bpy.types.Operator):
 
         data_to_write = {asset_collection} | set(selected_objects)
         
-        asset_collection.asset_mark()
-        asset_collection.asset_data.catalog_id = "919b878c-dcf2-44ec-9764-cb78f4c3f2d3"          # uuid is defined in X:\PROD\3D\blender_asset.cats.txt
+
+        if self.asset_type == "Props":
+            asset_collection.asset_mark()
+            asset_collection.asset_data.catalog_id = "919b878c-dcf2-44ec-9764-cb78f4c3f2d3"          # uuid is defined in X:\PROD\3D\blender_asset.cats.txt
 
         os.makedirs(self.filepath, exist_ok=True)
         bpy.data.libraries.write(self.filepath, data_to_write, fake_user=True)

@@ -7,6 +7,9 @@ import tomllib # type: ignore
 # has to be all lowercase
 bl_id_prefix = "airfoe"
 
+# suffix for the geo usd file a scene export writes next to the map file
+MAP_GEO_SUFFIX = "_geo"
+
 class AddonProperties:
     module_name = __package__
     panel_category = "Airfoe"

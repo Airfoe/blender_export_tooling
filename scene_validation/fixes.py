@@ -17,7 +17,6 @@ def make_convex(context, obj):
 
 @fixer("set_collision_purpose")
 def set_collision_purpose(context, obj):
-    # the USD hook maps "collision" to the proxy purpose on export
     obj["purpose"] = "collision"
 
 
@@ -45,6 +44,14 @@ def sync_data_name(context, obj):
     prefix = DATA_PREFIXES.get(obj.type, "")
     obj.data.name = obj.name.removeprefix(prefix)
 
+@fixer("unparent_keep_transform")
+def unparent_keep_transform(context, obj):
+    world = obj.matrix_world.copy()
+    obj.parent = None
+    obj.matrix_world = world
+
+
+# Helpers
 
 def free_collider_name(base):
     """First unused UE style collider name: <base>_00, <base>_01, ..."""

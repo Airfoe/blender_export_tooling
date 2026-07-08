@@ -5,7 +5,6 @@ import os
 def export_USD(export_path, root_name, export_collection):
 
 
-
     bpy.ops.wm.usd_export(
         filepath=str(export_path),
         check_existing=True, 
@@ -76,7 +75,7 @@ def export_USD(export_path, root_name, export_collection):
         ngon_method='BEAUTY', usdz_downscale_size='KEEP', 
         usdz_downscale_custom_size=128, 
         merge_parent_xform=True, 
-        convert_scene_units='CENTIMETERS', 
+        convert_scene_units='METERS', 
         meters_per_unit=100,
     )
 

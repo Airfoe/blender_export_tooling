@@ -41,4 +41,9 @@ class USD_PG_ExportHookSettings(bpy.types.PropertyGroup):
 
     high_poly_collection: bpy.props.PointerProperty(type=bpy.types.Collection) #type: ignore
 
+    map_geo_collection: bpy.props.PointerProperty(type=bpy.types.Collection) #type: ignore
+    map_asset_collection: bpy.props.PointerProperty(type=bpy.types.Collection) #type: ignore
+
+    export_stage: bpy.props.StringProperty() #type: ignore 
+
     usd_asset_type: bpy.props.StringProperty() #type: ignore
