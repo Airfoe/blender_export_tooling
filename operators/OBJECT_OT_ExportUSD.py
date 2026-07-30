@@ -12,7 +12,7 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
     bl_label = "Export USD Operator"
 
     collection: bpy.props.StringProperty()  # type: ignore
-    export: bpy.props.StringProperty(default = "LAYOUT") #type: ignore
+    export: bpy.props.StringProperty() #type: ignore
 
     def execute(self, context):
         if not bpy.data.filepath:
@@ -57,7 +57,7 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
 
         if self.export == "LAYOUT":
             settings.export_stage = "layout"
-            if not settings.map_geo_collection:
+            if not settings.map_layout_collection:
                 self.report({"ERROR"}, "Set the layout collection before exporting!")
                 return {"CANCELLED"}
 
