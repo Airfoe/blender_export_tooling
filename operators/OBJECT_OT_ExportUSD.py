@@ -36,10 +36,12 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
         export_dir = export_root
         os.makedirs(export_dir, exist_ok=True)
 
-        export_path = os.path.join(export_dir, filename)
+        export_path = os.path.join(export_dir, asset_type, stem, filename)
 
 
         if self.export == "GEO":
+            export_path = os.path.join(export_dir, filename)
+
             if not settings.map_geo_collection:
                 self.report({"ERROR"}, "Set the geo collection before exporting!")
                 return {"CANCELLED"}
@@ -56,6 +58,8 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
 
 
         if self.export == "LAYOUT":
+            export_path = os.path.join(export_dir, filename)
+
             settings.export_stage = "layout"
             if not settings.map_layout_collection:
                 self.report({"ERROR"}, "Set the layout collection before exporting!")
@@ -69,10 +73,11 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
             self.report({'INFO'}, message = f"exported {export_collection} as {export_path}")
 
 
-        self.collection = ""
         export_USD(
                 export_path=export_path,
                 root_name=stem,
-                export_collection=settings.map_asset_collection.name
+                export_collection=export_collection
             )
+        print(export_path)
+        self.collection = ""
         return {"FINISHED"}
