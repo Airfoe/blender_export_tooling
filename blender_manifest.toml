@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "airfoe_blender_tooling"
-version = "1.7.3"
+version = "1.7.4"
 name = "Airfoe Blender Tooling"
 tagline = "Internal Airfoe Tools"
 maintainer = "fynn.luft@airfoe.com"

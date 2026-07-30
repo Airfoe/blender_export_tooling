@@ -70,4 +70,9 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
 
 
         self.collection = ""
+        export_USD(
+                export_path=export_path,
+                root_name=stem,
+                export_collection=settings.map_asset_collection.name
+            )
         return {"FINISHED"}
