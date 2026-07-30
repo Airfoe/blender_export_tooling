@@ -12,6 +12,6 @@ class Airfoe_Preferences(bpy.types.AddonPreferences):
         box = layout.box()
         box.prop(context.scene.export_hook_settings, "export_type", text="USD File Format")
         box.prop(self, "root_directory", text = "Global Root Directory")
-        box.prop(context.scene.export_hook_settings, "export_root_directory", "Export Directory")
+        box.prop(context.scene.export_hook_settings, "export_root_directory", text = "Export Directory")
 
 
