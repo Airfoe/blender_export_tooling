@@ -12,7 +12,7 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
     bl_label = "Export USD Operator"
 
     collection: bpy.props.StringProperty()  # type: ignore
-    exporting_scene: bpy.props.BoolProperty(default = False) #type: ignore
+    export: bpy.props.StringProperty(default = "LAYOUT") #type: ignore
 
     def execute(self, context):
         if not bpy.data.filepath:
@@ -33,21 +33,17 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
             filename = f"{stem}.{filetype}"
 
         export_root = get_export_root()
-        if self.exporting_scene:
-            export_dir = export_root
-        else:
-            export_dir = os.path.join(export_root, asset_type, stem)
+        export_dir = export_root
         os.makedirs(export_dir, exist_ok=True)
 
         export_path = os.path.join(export_dir, filename)
 
 
-        if self.exporting_scene:
-            if not settings.map_geo_collection or not settings.map_asset_collection:
-                self.report({"ERROR"}, "Set the geo and assets collections before exporting a scene.")
+        if self.export == "GEO":
+            if not settings.map_geo_collection:
+                self.report({"ERROR"}, "Set the geo collection before exporting!")
                 return {"CANCELLED"}
 
-            # important: export geo first, so its ready to import into the next file
             geo_export_path = os.path.join(export_dir, f"{stem}{MAP_GEO_SUFFIX}.{filetype}")
             settings.export_stage = "geo"
             export_USD(
@@ -55,21 +51,23 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
                 root_name=f"{stem}{MAP_GEO_SUFFIX}",
                 export_collection=settings.map_geo_collection.name
             )
+            self.report({'INFO'}, message = f"exported {export_collection} as {geo_export_path}")
+
+
+
+        if self.export == "LAYOUT":
             settings.export_stage = "layout"
+            if not settings.map_geo_collection:
+                self.report({"ERROR"}, "Set the layout collection before exporting!")
+                return {"CANCELLED"}
 
             export_USD(
                 export_path=export_path,
                 root_name=stem,
                 export_collection=settings.map_asset_collection.name
             )
+            self.report({'INFO'}, message = f"exported {export_collection} as {export_path}")
 
-        else:
-            export_USD(
-                export_path=export_path,
-                root_name=stem,
-                export_collection=export_collection,
-            )
 
-        self.report({'INFO'}, message = f"exported {export_collection} as {filename}")
         self.collection = ""
         return {"FINISHED"}

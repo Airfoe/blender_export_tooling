@@ -15,19 +15,36 @@ class VIEW3D_PT_UI_Material(bpy.types.Panel):
 
         if not objects:
             return
-        layout = self.layout
 
+        linked_materials, regular_materials = self.get_materials(objects)
+        layout = self.layout
+        box = layout.box()
+        box.label(text="Library Materials")
+        for material in linked_materials:
+            box.label(text=material, icon = "ASSET_MANAGER")
+
+        box = layout.box()
+        box.label(text="New Materials")
+        for material in regular_materials:
+            box.label(text=material, icon = "MATERIAL")
+
+
+
+
+    def get_materials(self, objects):
+        linked_materials = []
+        regular_materials = []
         for obj in objects:
             if obj.name.startswith("UCX_"):
                 continue
-            box = layout.box()
-            box.label(text=f"{obj.name}", icon = 'MESH_CUBE')
-            col = box.column(align=True)
             for slot in obj.material_slots:
                 if slot.material:
-                    row = col.row(align=True)
+                    name = slot.material.name
                     if slot.material.library:
-                        row.label(text=f"{slot.material.name}", icon = 'LINKED')
+                        if name not in linked_materials:
+                            linked_materials.append(name)
                     else:
-                        row.label(text=f"{slot.material.name}", icon = 'MATERIAL')
-                    row.prop(context.scene.usd_validator_settings, "shaders")
+                        if name not in regular_materials:
+                            regular_materials.append(name)
+
+        return linked_materials, regular_materials
