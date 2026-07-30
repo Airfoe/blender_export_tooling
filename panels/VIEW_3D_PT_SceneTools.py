@@ -11,7 +11,16 @@ class VIEW3D_PT_SceneTools(bpy.types.Panel):
         layout = self.layout
         self.draw_collider_tools(layout)
         self.draw_misc_tools(layout, context)
+        self.draw_helper_tools(layout, context)
 
+
+
+    def draw_helper_tools(self, layout, context):
+        from ..operators.PATH_OT_FixAbsolutePaths import PATH_OT_FixAbsolutePaths
+        box = layout.box()
+        box.label(text = "helpers")
+        box.operator(PATH_OT_FixAbsolutePaths.bl_idname, text = "Fix Texture Paths", icon = "TEXTURE").domain = "textures"
+        
 
 
     def draw_misc_tools(self, layout, context):
