@@ -21,11 +21,28 @@ def get_manifest():
         manifest = tomllib.load(f)
     return manifest
 
+def is_usdview_installed():
+    usdview = get_usdview_install_path()
+    if os.path.isfile(usdview):
+        return True
+    else:
+        print(f"USDView not installed at {usdview}")
+        return False
+
+def get_usdview_install_path():
+    from pathlib import Path
+    install_path = get_preferences().usdview_path
+    usdview = Path(install_path) / "USDView" / "scripts" /  "usdview.bat"
+    return usdview
+
 
 def get_export_root():
     from pathlib import Path
     root_path = bpy.context.scene.export_hook_settings.export_root_directory
     return Path(root_path)
+
+def get_asset_type(context):
+    return context.scene.export_hook_settings.usd_asset_type
 
 def get_preferences():
     # No context needed, directly get addon preferences by package name
@@ -36,3 +53,6 @@ def get_preferences():
 def get_operator(name):
     return bl_id_prefix + "." + name.lower()
 
+
+r"C:\Users\Fxnarji\Documents\test\USDView\scripts\usdview.bat"
+r"C:\Users\Fxnarji\Documents\test\USDView\scripts\usdview.bat"

@@ -4,6 +4,12 @@ import os
 
 def export_USD(export_path, root_name, export_collection):
 
+    import sys
+    p4blender = sys.modules.get("p4blender")
+    if p4blender is not None and p4blender.available():
+        p4blender.checkout(export_path)
+
+
 
     bpy.ops.wm.usd_export(
         filepath=str(export_path),

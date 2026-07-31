@@ -16,6 +16,10 @@ from .operators.OBJECT_OT_SelectObject import OBJECT_OT_SelectObject
 from .operators.OBJECT_OT_ShowColliders import OBJECT_OT_ShowColliders
 from .operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
 from .operators.PATH_OT_FixAbsolutePaths import PATH_OT_FixAbsolutePaths
+from .operators.USD_OT_DownloadUSDView import USD_OT_DownloadUSDView
+from .operators.USD_OT_DownloadUSDView import USD_OT_CancelDownload
+from .operators.USD_OT_PreviewUSD import USD_OT_PreviewUSD
+from .operators.USD_OT_UnrealShaderHook import USD_OT_UnrealShaderHook
 from .operators.USD_OT_USDHook import USD_OT_USDHook
 from .panels.VIEW3D_PT_UI_Exporter import VIEW3D_PT_UI_Exporter
 from .panels.VIEW_3D_PT_Material import VIEW3D_PT_UI_Material
@@ -50,6 +54,10 @@ OBJECT_OT_SelectObject,
 OBJECT_OT_ShowColliders,
 OBJECT_OT_ValidateUSD,
 PATH_OT_FixAbsolutePaths,
+USD_OT_DownloadUSDView,
+USD_OT_CancelDownload,
+USD_OT_PreviewUSD,
+USD_OT_UnrealShaderHook,
 USD_OT_USDHook,
 
 #Panels

@@ -1,5 +1,6 @@
 import bpy  # type: ignore
-from ..constants import AddonProperties
+from ..constants import AddonProperties, get_export_root, get_asset_type, is_usdview_installed
+from pathlib import Path
 
 class VIEW3D_PT_SceneTools(bpy.types.Panel):
     bl_label = "Scene Tools"
@@ -12,8 +13,42 @@ class VIEW3D_PT_SceneTools(bpy.types.Panel):
         self.draw_collider_tools(layout)
         self.draw_misc_tools(layout, context)
         self.draw_helper_tools(layout, context)
+        self.draw_usd_tools(layout, context)
 
 
+
+    def draw_usd_tools(self, layout, context):
+        import os
+        def _is_usdfile(file):
+            if file.suffix.startswith(".usd"):
+                return True
+            else:
+                return False
+
+        from ..operators.USD_OT_PreviewUSD import USD_OT_PreviewUSD
+        box = layout.box()
+        box.label(text = "USD Tools")
+
+        asset_type = get_asset_type(context)
+        name = Path(bpy.data.filepath).stem
+
+        if asset_type == "props":
+            export_path = Path(get_export_root()) / "props" / name
+            if os.path.isdir(export_path):
+                for file in export_path.iterdir():
+                    if _is_usdfile(file):
+                        box.operator(USD_OT_PreviewUSD.bl_idname, icon = "RENDER_STILL", text = file.name).file = str(file)
+
+        if asset_type == "scene":
+            export_path = Path(get_export_root())
+            if os.path.isdir(export_path):
+                for file in export_path.iterdir():
+                    if _is_usdfile(file):
+                        box.operator(USD_OT_PreviewUSD.bl_idname, icon = "RENDER_STILL", text = file.name).file = str(file)
+
+
+
+        
 
     def draw_helper_tools(self, layout, context):
         from ..operators.PATH_OT_FixAbsolutePaths import PATH_OT_FixAbsolutePaths

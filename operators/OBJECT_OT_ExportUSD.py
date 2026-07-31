@@ -20,6 +20,7 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
             return {"CANCELLED"}
 
         settings = context.scene.export_hook_settings
+
         filetype = settings.export_type
         asset_type = settings.usd_asset_type
         stem = Path(bpy.data.filepath).stem
@@ -54,6 +55,8 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
                 export_collection=settings.map_geo_collection.name
             )
             self.report({'INFO'}, message = f"exported {export_collection} as {geo_export_path}")
+            self.collection = ""
+            return {"FINISHED"}
 
 
 
@@ -61,7 +64,7 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
             export_path = os.path.join(export_dir, filename)
 
             settings.export_stage = "layout"
-            if not settings.map_layout_collection:
+            if not settings.map_asset_collection:
                 self.report({"ERROR"}, "Set the layout collection before exporting!")
                 return {"CANCELLED"}
 
@@ -71,6 +74,9 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
                 export_collection=settings.map_asset_collection.name
             )
             self.report({'INFO'}, message = f"exported {export_collection} as {export_path}")
+            self.collection = ""
+            return {"FINISHED"}
+
 
 
         export_USD(
@@ -79,5 +85,4 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
                 export_collection=export_collection
             )
         print(export_path)
-        self.collection = ""
         return {"FINISHED"}
