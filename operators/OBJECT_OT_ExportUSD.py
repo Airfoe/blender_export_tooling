@@ -84,5 +84,6 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
                 root_name=stem,
                 export_collection=export_collection
             )
+        self.collection = ""
         print(export_path)
         return {"FINISHED"}
