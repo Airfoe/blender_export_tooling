@@ -5,6 +5,8 @@ from ..operators.OBJECT_OT_ExportFBX import OBJECT_OT_ExportFBX
 from ..operators.OBJECT_OT_ExportUSD import OBJECT_OT_ExportUSD
 from ..operators.OBJECT_OT_ValidateUSD import OBJECT_OT_ValidateUSD
 from ..operators.FILE_OT_SetAssetType import FILE_OT_SetAssetType
+from ..project import paths, helpers
+
 class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
     bl_label = "Exporter"
     bl_space_type = "VIEW_3D"
@@ -13,24 +15,6 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-
-
-        ################################
-        ## FBX Export
-        ################################
-
-       #box = layout.box()
-       #box.label(text="Export Static Mesh")
-       #column = box.column(align=True)
-       #column.scale_y = 1.5
-       #single = column.operator(OBJECT_OT_ExportFBX.bl_idname, text=f"Export as ({len(context.selected_objects)}) Files", icon="EXPORT")
-       #single.grouped = False
-       #single.selected = True
-
-       #grouped = column.operator(OBJECT_OT_ExportFBX.bl_idname, text="Export Selected as group", icon="EXPORT")
-       #grouped.grouped = True
-       #grouped.selected = True
-
 
         ################################
         ## USD Export
@@ -60,9 +44,16 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
             box.prop(context.scene.export_hook_settings, "parent_class", text = "Type")
             split = box.split(factor=0.5)
             split.scale_y = 1.5
+
             export_low = split.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export Low", icon="EXPORT")
+            export_low.collection = coll_name
+            export_low.file_name = helpers.get_asset_name()
+            export_low.export_dir = paths.get_props_export_path()
+
             export_high = split.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export High", icon="EXPORT")
             export_high.collection = coll_name
+            export_high.file_name = helpers.get_asset_name()
+            export_high.export_dir = paths.get_props_export_path()
 
         elif context.scene.export_hook_settings.usd_asset_type == "scene":
             self.draw_scene_exports()
@@ -84,18 +75,22 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
         col = split.box()
         col.label(text="Geo")
         col.prop(export_hook_settings, "map_geo_collection", text = "")
+
         export_geo_op = col.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export", icon="EXPORT")
         export_geo_op.collection = export_hook_settings.map_geo_collection.name
         export_geo_op.export_stage = "geo"
-        export_geo_op.file_name = bpy.path.basename(bpy.data.filepath).split(".")[0] + "_geo"
+        export_geo_op.file_name = helpers.get_asset_name() + "_geo"
+        export_geo_op.export_dir = paths.get_map_export_path()
 
         col = split.box()
         col.label(text="Layout")
         col.prop(export_hook_settings, "map_asset_collection", text = "")
+
         export_layout_op = col.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export", icon="EXPORT")
         export_layout_op.collection = export_hook_settings.map_asset_collection.name
         export_layout_op.export_stage = "layout"
-        export_layout_op.file_name = bpy.path.basename(bpy.data.filepath).split(".")[0] + "_layout"
+        export_layout_op.file_name = helpers.get_asset_name()
+        export_layout_op.export_dir = paths.get_map_export_path()
 
 
 

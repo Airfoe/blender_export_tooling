@@ -7,6 +7,7 @@ from pathlib import Path
 import os
 import time
 from ..constants import get_operator, get_export_root, MAP_GEO_SUFFIX
+from ..project import paths
 
 EXPORT_ROOT = None
 
@@ -113,11 +114,21 @@ def clear_subtree(stage, prim):
         stage.RemovePrim(child.GetPath())
 
 def safe_replace(stage, prim, replacement):
-    filepath = os.path.join(EXPORT_ROOT, "props", replacement, f"{replacement}.usda")
-    if os.path.exists(filepath):
+    filepath = Path(paths.export_props_path) / replacement / f"{replacement}.usda"
+    print(filepath)
+    if filepath.exists():
         clear_subtree(stage, prim)
         prim.GetReferences().ClearReferences()
-        prim.GetReferences().AddReference(f"./props/{replacement}/{replacement}.usda")
+
+        root_layer = stage.GetRootLayer()
+        stage_dir = None
+        if root_layer and getattr(root_layer, "realPath", None):
+            stage_dir = os.path.dirname(root_layer.realPath)
+        if not stage_dir:
+            stage_dir = str(Path(EXPORT_ROOT) if EXPORT_ROOT else Path(paths.export_props_path).parent)
+
+        ref_path = os.path.relpath(str(filepath), start=stage_dir)
+        prim.GetReferences().AddReference(ref_path)
     else:
         print(f"cant find {filepath}")
         return False

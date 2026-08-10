@@ -1,5 +1,6 @@
 import bpy  # type: ignore
 from ..constants import AddonProperties, get_export_root, get_asset_type, is_usdview_installed
+from ..project import paths
 from pathlib import Path
 
 class VIEW3D_PT_SceneTools(bpy.types.Panel):
@@ -33,7 +34,7 @@ class VIEW3D_PT_SceneTools(bpy.types.Panel):
         name = Path(bpy.data.filepath).stem
 
         if asset_type == "props":
-            export_path = Path(get_export_root()) / "props" / name
+            export_path = Path(paths.export_props_path) / name
             if os.path.isdir(export_path):
                 for file in export_path.iterdir():
                     if _is_usdfile(file):

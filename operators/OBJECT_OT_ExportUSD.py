@@ -5,6 +5,7 @@ import bpy  # type: ignore
 
 from ..constants import get_operator, get_export_root, MAP_GEO_SUFFIX
 from ..helpers.usd_helpers import export_USD
+from ..project import helpers
 
 
 class OBJECT_OT_ExportUSD(bpy.types.Operator):
@@ -12,17 +13,20 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
     bl_label = "Export USD Operator"
 
     collection: bpy.props.StringProperty()  # type: ignore
-    relative_path: bpy.props.StringProperty()  # type: ignore
+    export_dir: bpy.props.StringProperty()  # type: ignore
     export_stage: bpy.props.StringProperty() #type: ignore
     file_name: bpy.props.StringProperty() #type: ignore
+
+    
 
     def execute(self, context):
         if not bpy.data.filepath:
             self.report({"ERROR"}, "Please save the blend file before exporting.")
             return {"CANCELLED"}
 
-        root_path = get_export_root()
-        export_path = Path(root_path) / self.relative_path
+        extension = helpers.get_export_settings(context).export_type
+        export_path = Path(self.export_dir) / f"{self.file_name}.{extension}"
+        export_path.parent.mkdir(parents=True, exist_ok=True)
 
         bpy.context.scene.export_hook_settings.export_stage = self.export_stage
         export_USD(
