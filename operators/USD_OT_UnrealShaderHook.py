@@ -6,8 +6,8 @@ r"""
 /!\ Fully VibeCoded! Purely for convenience tho, materials get re-built in engine anyways /!\
 
 Prompt:
-Currently the materials do not survive because 
-i am not directly using a principled BSDF (see picture). 
+Currently the materials do not survive because
+i am not directly using a principled BSDF (see picture).
 How hard is it to wire up the textures for USD in a USD Export hook?
 
 (built by Claude Opus 4.8)
@@ -41,7 +41,13 @@ class USD_OT_UnrealShaderHook(bpy.types.USDHook):
 
     @staticmethod
     def on_material_export(export_context, bl_material, usd_material):
-        print("fired!")
+        if bl_material.library:
+            # Linked materials already exist in engine and get rebuilt from the
+            # MaterialInstanceParent tag the USD hook writes, so building a
+            # shader network here would only copy their textures into every
+            # export target for nothing.
+            return True
+
         group = _unreal_group(bl_material)
         if group is None:
             return False        # not ours -> let Blender's normal path handle it
@@ -59,12 +65,17 @@ class USD_OT_UnrealShaderHook(bpy.types.USDHook):
         st.CreateInput("varname", Sdf.ValueTypeNames.String).Set("st")   # or "UVMap"
         st_out = st.CreateOutput("result", Sdf.ValueTypeNames.Float2)
 
-        def make_tex(name, image, colorspace):
+        def make_tex(name, socket_name, colorspace):
+            image = _image_into(group, socket_name)
+            if image is None:
+                # unconnected socket - exporting nothing beats crashing the hook
+                print(f"[UnrealShaderHook] {bl_material.name}: no image on '{socket_name}', skipped")
+                return None
+
             t = UsdShade.Shader.Define(stage, mat.AppendChild(name))
             t.CreateIdAttr("UsdUVTexture")
             # export_texture copies the file per the exporter's texture settings and
-            # returns the asset path to reference. Confirm the arg for your Blender
-            # version; fallback: bpy.path.abspath(image.filepath).
+            # returns the asset path to reference.
             path = export_context.export_texture(image)
             t.CreateInput("file", Sdf.ValueTypeNames.Asset).Set(path)
             t.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(st_out)
@@ -73,27 +84,28 @@ class USD_OT_UnrealShaderHook(bpy.types.USDHook):
             t.CreateInput("wrapT", Sdf.ValueTypeNames.Token).Set("repeat")
             return t
 
+        def connect(surface_input, input_type, tex, channel, channel_type):
+            if tex is None:
+                return
+            surf.CreateInput(surface_input, input_type).ConnectToSource(
+                tex.CreateOutput(channel, channel_type))
+
         # Base Color + Alpha (sRGB)
-        bc = make_tex("baseColorTex", _image_into(group, "BaseColor"), "sRGB")
-        surf.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(
-            bc.CreateOutput("rgb", Sdf.ValueTypeNames.Float3))
-        surf.CreateInput("opacity", Sdf.ValueTypeNames.Float).ConnectToSource(
-            bc.CreateOutput("a", Sdf.ValueTypeNames.Float))
+        bc = make_tex("baseColorTex", "BaseColor", "sRGB")
+        connect("diffuseColor", Sdf.ValueTypeNames.Color3f, bc, "rgb", Sdf.ValueTypeNames.Float3)
+        connect("opacity", Sdf.ValueTypeNames.Float, bc, "a", Sdf.ValueTypeNames.Float)
 
         # ORM packed (raw): R=occlusion, G=roughness, B=metallic
-        orm = make_tex("ormTex", _image_into(group, "ORM"), "raw")
-        surf.CreateInput("occlusion", Sdf.ValueTypeNames.Float).ConnectToSource(
-            orm.CreateOutput("r", Sdf.ValueTypeNames.Float))
-        surf.CreateInput("roughness", Sdf.ValueTypeNames.Float).ConnectToSource(
-            orm.CreateOutput("g", Sdf.ValueTypeNames.Float))
-        surf.CreateInput("metallic", Sdf.ValueTypeNames.Float).ConnectToSource(
-            orm.CreateOutput("b", Sdf.ValueTypeNames.Float))
+        orm = make_tex("ormTex", "ORM", "raw")
+        connect("occlusion", Sdf.ValueTypeNames.Float, orm, "r", Sdf.ValueTypeNames.Float)
+        connect("roughness", Sdf.ValueTypeNames.Float, orm, "g", Sdf.ValueTypeNames.Float)
+        connect("metallic", Sdf.ValueTypeNames.Float, orm, "b", Sdf.ValueTypeNames.Float)
 
         # Normal (raw + [0,1]->[-1,1] remap)
-        nrm = make_tex("normalTex", _image_into(group, "Normal"), "raw")
-        nrm.CreateInput("scale", Sdf.ValueTypeNames.Float4).Set(Gf.Vec4f(2, 2, 2, 1))
-        nrm.CreateInput("bias", Sdf.ValueTypeNames.Float4).Set(Gf.Vec4f(-1, -1, -1, 0))
-        surf.CreateInput("normal", Sdf.ValueTypeNames.Normal3f).ConnectToSource(
-            nrm.CreateOutput("rgb", Sdf.ValueTypeNames.Float3))
+        nrm = make_tex("normalTex", "Normal", "raw")
+        if nrm is not None:
+            nrm.CreateInput("scale", Sdf.ValueTypeNames.Float4).Set(Gf.Vec4f(2, 2, 2, 1))
+            nrm.CreateInput("bias", Sdf.ValueTypeNames.Float4).Set(Gf.Vec4f(-1, -1, -1, 0))
+        connect("normal", Sdf.ValueTypeNames.Normal3f, nrm, "rgb", Sdf.ValueTypeNames.Float3)
 
         return True

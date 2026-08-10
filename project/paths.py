@@ -26,9 +26,16 @@ def build_context():
     return {k: fn() for k, (_desc, fn) in TOKENS.items()}
 
 
-def get(field):
-    """Resolve one preference path field. Raises TemplateError."""
-    return resolve(getattr(get_preferences(), field), build_context())
+def get(field, **overrides):
+    """Resolve one preference path field. Raises TemplateError.
+
+    Overrides replace tokens for this call only, e.g.
+    get("export_props_path", NAME="Catapult") to point at another asset's
+    export folder instead of the currently open file's.
+    """
+    ctx = build_context()
+    ctx.update({key.upper(): value for key, value in overrides.items()})
+    return resolve(getattr(get_preferences(), field), ctx)
 
 
 def __getattr__(name):
