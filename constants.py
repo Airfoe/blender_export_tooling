@@ -52,7 +52,3 @@ def get_preferences():
 
 def get_operator(name):
     return bl_id_prefix + "." + name.lower()
-
-
-r"C:\Users\Fxnarji\Documents\test\USDView\scripts\usdview.bat"
-r"C:\Users\Fxnarji\Documents\test\USDView\scripts\usdview.bat"

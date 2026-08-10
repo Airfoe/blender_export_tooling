@@ -63,19 +63,9 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
             export_low = split.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export Low", icon="EXPORT")
             export_high = split.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export High", icon="EXPORT")
             export_high.collection = coll_name
-        
+
         elif context.scene.export_hook_settings.usd_asset_type == "scene":
-            split = column.split(factor=0.5)
-            col = split.box()
-            col.label(text="GEO")
-            col.prop(context.scene.export_hook_settings, "map_geo_collection", text = "")
-            col.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export", icon="EXPORT").export = "GEO"
-
-            col = split.box()
-            col.label(text="Layout")
-            col.prop(context.scene.export_hook_settings, "map_asset_collection", text = "")
-            col.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export", icon="EXPORT").export = "LAYOUT"
-
+            self.draw_scene_exports()
 
 
 
@@ -83,4 +73,29 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
         column.scale_y = 1.5
         column.operator(OBJECT_OT_ValidateUSD.bl_idname, text="Validate Scene", icon="INFO")
         box.label(text = f"Asset Type: {context.scene.export_hook_settings.usd_asset_type}")
+
+
+
+    def draw_scene_exports(self, layout):
+        export_hook_settings = self.context.scene.export_hook_settings
+
+        column = self.layout.column(align=True)
+        split = column.split(factor=0.5)
+        col = split.box()
+        col.label(text="Geo")
+        col.prop(export_hook_settings, "map_geo_collection", text = "")
+        export_geo_op = col.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export", icon="EXPORT")
+        export_geo_op.collection = export_hook_settings.map_geo_collection.name
+        export_geo_op.export_stage = "geo"
+        export_geo_op.file_name = bpy.path.basename(bpy.data.filepath).split(".")[0] + "_geo"
+
+        col = split.box()
+        col.label(text="Layout")
+        col.prop(export_hook_settings, "map_asset_collection", text = "")
+        export_layout_op = col.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export", icon="EXPORT")
+        export_layout_op.collection = export_hook_settings.map_asset_collection.name
+        export_layout_op.export_stage = "layout"
+        export_layout_op.file_name = bpy.path.basename(bpy.data.filepath).split(".")[0] + "_layout"
+
+
 
