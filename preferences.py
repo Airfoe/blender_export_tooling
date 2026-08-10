@@ -15,7 +15,7 @@ class Airfoe_Preferences(bpy.types.AddonPreferences):
 
 
     show_export_paths: bpy.props.BoolProperty(default=False) #type: ignore
-    export_environment_path:bpy.props.StringProperty(default=r"{ROOT}\_export\Environment\{NAME}") #type: ignore
+    export_environment_path:bpy.props.StringProperty(default=r"{ROOT}\_export") #type: ignore
     export_props_path:bpy.props.StringProperty(default=r"{ROOT}\_export\props\{NAME}") #type: ignore
     export_char_path:bpy.props.StringProperty(default=r"{ROOT}\_export\chars\{NAME}") #type: ignore
 

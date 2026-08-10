@@ -15,6 +15,7 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        self.context = context
 
         ################################
         ## USD Export
@@ -48,15 +49,15 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
             export_low = split.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export Low", icon="EXPORT")
             export_low.collection = coll_name
             export_low.file_name = helpers.get_asset_name()
-            export_low.export_dir = paths.get_props_export_path()
+            export_low.export_dir = paths.export_props_path
 
             export_high = split.operator(OBJECT_OT_ExportUSD.bl_idname, text="Export High", icon="EXPORT")
             export_high.collection = coll_name
-            export_high.file_name = helpers.get_asset_name()
-            export_high.export_dir = paths.get_props_export_path()
+            export_high.file_name = helpers.get_asset_name() + "_high"
+            export_high.export_dir = paths.export_props_path
 
         elif context.scene.export_hook_settings.usd_asset_type == "scene":
-            self.draw_scene_exports()
+            self.draw_scene_exports(layout=layout)
 
 
 
@@ -70,7 +71,7 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
     def draw_scene_exports(self, layout):
         export_hook_settings = self.context.scene.export_hook_settings
 
-        column = self.layout.column(align=True)
+        column = layout.column(align=True)
         split = column.split(factor=0.5)
         col = split.box()
         col.label(text="Geo")
@@ -80,7 +81,7 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
         export_geo_op.collection = export_hook_settings.map_geo_collection.name
         export_geo_op.export_stage = "geo"
         export_geo_op.file_name = helpers.get_asset_name() + "_geo"
-        export_geo_op.export_dir = paths.get_map_export_path()
+        export_geo_op.export_dir = paths.export_environment_path
 
         col = split.box()
         col.label(text="Layout")
@@ -90,7 +91,7 @@ class VIEW3D_PT_UI_Exporter(bpy.types.Panel):
         export_layout_op.collection = export_hook_settings.map_asset_collection.name
         export_layout_op.export_stage = "layout"
         export_layout_op.file_name = helpers.get_asset_name()
-        export_layout_op.export_dir = paths.get_map_export_path()
+        export_layout_op.export_dir = paths.export_environment_path
 
 
 
