@@ -34,7 +34,8 @@ class VIEW3D_PT_SceneTools(bpy.types.Panel):
         name = Path(bpy.data.filepath).stem
 
         if asset_type == "props":
-            export_path = Path(paths.export_props_path) / name
+            export_path = Path(paths.export_props_path)
+            print(export_path)
             if os.path.isdir(export_path):
                 for file in export_path.iterdir():
                     if _is_usdfile(file):
