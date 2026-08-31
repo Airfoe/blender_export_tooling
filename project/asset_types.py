@@ -39,8 +39,7 @@ class AssetType(str, Enum):
     def _resolve(self, field):
         if field is None:
             raise ValueError(f"{self.name} has no path field")
-        # imported lazily: project.paths reaches back into constants
-        from project import paths
+        from . import paths
         return paths.get(field)
 
     @classmethod
