@@ -8,8 +8,8 @@ import os
 import time
 from ..constants import get_operator, get_export_root, MAP_GEO_SUFFIX
 from ..helpers import usd_helpers
-
-EXPORT_ROOT = None
+from ..project.asset_types import AssetType
+from ..project.templates import TemplateError
 
 PURPOSE_ATTR = "userProperties:purpose"
 VALID_PURPOSES = {"default", "render", "proxy", "guide"}
@@ -54,7 +54,7 @@ class USD_OT_USDHook(bpy.types.USDHook):
         set_parent_class(stage, settings.parent_class)
         set_kind_assembly(stage)
 
-        if settings.usd_asset_type == "scene":
+        if settings.usd_asset_type == AssetType.SCENE:
             if settings.export_stage == "layout":
                 link_map_geo(stage)
             elif settings.export_stage == "geo":
@@ -304,9 +304,16 @@ def link_map_geo(stage):
     settings = bpy.context.scene.export_hook_settings
     stem = Path(bpy.data.filepath).stem
     filename = f"{stem}{MAP_GEO_SUFFIX}.{settings.export_type}"
-    filepath = os.path.join(EXPORT_ROOT, filename)
-    if not os.path.exists(filepath):
-        print(f"cant find {filepath}")
+
+    try:
+        geo_dir = AssetType.SCENE.export_path
+    except TemplateError as err:
+        print(f"[USDHook] cannot resolve the environment export path: {err}")
+        return
+
+    filepath = Path(geo_dir) / filename
+    if not filepath.exists():
+        print(f"[USDHook] no map geo at {filepath} - export the geo stage first")
         return
 
     root_prim = stage.GetDefaultPrim()
@@ -319,8 +326,8 @@ def link_map_geo(stage):
     geo_xform.AddTranslateOp().Set((0.0, 0.0, 0.0))
     geo_xform.AddRotateXYZOp().Set((0.0, 0.0, 0.0))
     geo_xform.AddScaleOp().Set((1.0, 1.0, 1.0))
-    author_link(geo_xform.GetPrim(), f"./{filename}")
-    print(f"linked {filename} at {geo_xform.GetPrim().GetPath()}")
+    author_link(geo_xform.GetPrim(), relative_asset_path(filepath, stage_directory(stage)))
+    print(f"[USDHook] linked {filename} at {geo_xform.GetPrim().GetPath()}")
 
 
 def set_material_tags(prim_map, stage):

@@ -3,25 +3,23 @@ import bpy  # type: ignore
 from pathlib import Path
 from ..constants import get_preferences
 from .templates import resolve, TemplateError
+from .asset_types import AssetType
 
 TOKENS = {
     "ROOT":     ("Project root",        lambda: get_preferences().root_directory),
-    "NAME": ("Current .blend name", lambda: Path(bpy.data.filepath).stem or "AssetName"),
+    "NAME": ("Current .blend name", lambda: Path(bpy.data.filepath).stem),
 }
 
-PATH_FIELDS = (
-    "source_environment_path", 
-    "source_props_path", 
-    "source_char_path",
-
-    "export_environment_path", 
-    "export_props_path", 
-    "export_char_path",
+# /!\ Claude Opus 5 /!\:
+PATH_FIELDS = tuple(
+    field
+    for kind in AssetType
+    for field in (kind.source_field, kind.export_field)
+    if field
 )
 
 
 
-# /!\ Claude Opus 5 /!\:
 def build_context():
     return {k: fn() for k, (_desc, fn) in TOKENS.items()}
 

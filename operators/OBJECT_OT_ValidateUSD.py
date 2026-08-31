@@ -48,7 +48,6 @@ class OBJECT_OT_ValidateUSD(bpy.types.Operator):
         is_open = getattr(settings, toggle_prop)
         has_error = any(item.severity == ERROR for item in items)
 
-        # header, highlighted if it hides critical issues
         box.alert = has_error and not is_open
         row = box.row(align=True)
         row.prop(

@@ -6,7 +6,7 @@ from .project import paths
 class Airfoe_Preferences(bpy.types.AddonPreferences):
     bl_idname = __package__
 
-    root_directory: bpy.props.StringProperty(subtype="DIR_PATH", default="X:\\PROD")#type: ignore
+    root_directory: bpy.props.StringProperty(subtype="DIR_PATH", default="D:\\ShowcaseProject")#type: ignore
 
     show_source_paths: bpy.props.BoolProperty(default=False) #type: ignore
     source_environment_path:bpy.props.StringProperty(default=r"{ROOT}\3D\Environment\{NAME}") #type: ignore
@@ -15,7 +15,7 @@ class Airfoe_Preferences(bpy.types.AddonPreferences):
 
 
     show_export_paths: bpy.props.BoolProperty(default=False) #type: ignore
-    export_environment_path:bpy.props.StringProperty(default=r"{ROOT}\_export") #type: ignore
+    export_environment_path:bpy.props.StringProperty(default=r"{ROOT}\_export\{NAME}") #type: ignore
     export_props_path:bpy.props.StringProperty(default=r"{ROOT}\_export\props\{NAME}") #type: ignore
     export_char_path:bpy.props.StringProperty(default=r"{ROOT}\_export\chars\{NAME}") #type: ignore
 

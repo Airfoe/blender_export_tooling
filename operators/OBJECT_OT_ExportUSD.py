@@ -3,7 +3,7 @@ from pathlib import Path
 
 import bpy  # type: ignore
 
-from ..constants import get_operator, get_export_root, MAP_GEO_SUFFIX
+from ..constants import get_operator
 from ..helpers.usd_helpers import export_USD
 from ..project import helpers
 
@@ -29,6 +29,7 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
         export_path.parent.mkdir(parents=True, exist_ok=True)
 
         bpy.context.scene.export_hook_settings.export_stage = self.export_stage
+        print(self.collection)
         export_USD(
                 export_path=export_path,
                 root_name=self.file_name,
