@@ -3,8 +3,9 @@ from pathlib import Path
 
 import bpy  # type: ignore
 
-from ..constants import get_operator, get_export_root, MAP_GEO_SUFFIX
+from ..constants import get_operator
 from ..helpers.usd_helpers import export_USD
+from ..project import helpers
 
 
 class OBJECT_OT_ExportUSD(bpy.types.Operator):
@@ -12,77 +13,27 @@ class OBJECT_OT_ExportUSD(bpy.types.Operator):
     bl_label = "Export USD Operator"
 
     collection: bpy.props.StringProperty()  # type: ignore
-    export: bpy.props.StringProperty() #type: ignore
+    export_dir: bpy.props.StringProperty()  # type: ignore
+    export_stage: bpy.props.StringProperty() #type: ignore
+    file_name: bpy.props.StringProperty() #type: ignore
+
+    
 
     def execute(self, context):
         if not bpy.data.filepath:
             self.report({"ERROR"}, "Please save the blend file before exporting.")
             return {"CANCELLED"}
 
-        settings = context.scene.export_hook_settings
+        extension = helpers.get_export_settings(context).export_type
+        export_path = Path(self.export_dir) / f"{self.file_name}.{extension}"
+        export_path.parent.mkdir(parents=True, exist_ok=True)
 
-        filetype = settings.export_type
-        asset_type = settings.usd_asset_type
-        stem = Path(bpy.data.filepath).stem
-
-
-        if self.collection:
-            export_collection = self.collection
-            filename = f"{stem}_high.{filetype}"
-        else:
-            export_collection = stem
-            filename = f"{stem}.{filetype}"
-
-        export_root = get_export_root()
-        export_dir = export_root
-        os.makedirs(export_dir, exist_ok=True)
-
-        export_path = os.path.join(export_dir, asset_type, stem, filename)
-
-
-        if self.export == "GEO":
-            export_path = os.path.join(export_dir, filename)
-
-            if not settings.map_geo_collection:
-                self.report({"ERROR"}, "Set the geo collection before exporting!")
-                return {"CANCELLED"}
-
-            geo_export_path = os.path.join(export_dir, f"{stem}{MAP_GEO_SUFFIX}.{filetype}")
-            settings.export_stage = "geo"
-            export_USD(
-                export_path=geo_export_path,
-                root_name=f"{stem}{MAP_GEO_SUFFIX}",
-                export_collection=settings.map_geo_collection.name
-            )
-            self.report({'INFO'}, message = f"exported {export_collection} as {geo_export_path}")
-            self.collection = ""
-            return {"FINISHED"}
-
-
-
-        if self.export == "LAYOUT":
-            export_path = os.path.join(export_dir, filename)
-
-            settings.export_stage = "layout"
-            if not settings.map_asset_collection:
-                self.report({"ERROR"}, "Set the layout collection before exporting!")
-                return {"CANCELLED"}
-
-            export_USD(
-                export_path=export_path,
-                root_name=stem,
-                export_collection=settings.map_asset_collection.name
-            )
-            self.report({'INFO'}, message = f"exported {export_collection} as {export_path}")
-            self.collection = ""
-            return {"FINISHED"}
-
-
-
+        bpy.context.scene.export_hook_settings.export_stage = self.export_stage
+        print(self.collection)
         export_USD(
                 export_path=export_path,
-                root_name=stem,
-                export_collection=export_collection
+                root_name=self.file_name,
+                export_collection=self.collection
             )
         self.collection = ""
         print(export_path)

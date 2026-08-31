@@ -42,7 +42,8 @@ def get_export_root():
     return Path(root_path)
 
 def get_asset_type(context):
-    return context.scene.export_hook_settings.usd_asset_type
+    from .project.asset_types import AssetType
+    return AssetType.of(context)
 
 def get_preferences():
     # No context needed, directly get addon preferences by package name
@@ -52,7 +53,3 @@ def get_preferences():
 
 def get_operator(name):
     return bl_id_prefix + "." + name.lower()
-
-
-r"C:\Users\Fxnarji\Documents\test\USDView\scripts\usdview.bat"
-r"C:\Users\Fxnarji\Documents\test\USDView\scripts\usdview.bat"

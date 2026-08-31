@@ -91,15 +91,6 @@ def wrong_purpose(obj) -> list[Issue]:
     return []
 
 
-@rule
-def wrong_name(obj) -> list[Issue]:
-    if is_collision_mesh(obj):
-        return collision_name_issues(obj)
-    return data_name_issues(obj)
-
-
-# helpers
-
 def collision_name_issues(obj) -> list[Issue]:
     if obj.parent is None:
         return [Issue(
@@ -109,7 +100,7 @@ def collision_name_issues(obj) -> list[Issue]:
             severity=ERROR,
         )]
 
-    # UE convention: UCX_<RenderMeshName> with optional _## suffix
+    # UCX_<RenderMeshName> with optional _## suffix
     expected = obj.name[:4].upper() + parent_base_name(obj.parent)
     if not re.fullmatch(re.escape(expected) + r"(_\d+)?", obj.name):
         return [Issue(

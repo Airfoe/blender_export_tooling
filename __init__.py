@@ -4,6 +4,7 @@ from bpy.props import BoolProperty, PointerProperty #type: ignore
 from .ValidatorPropertyGroup import USD_PG_ExportHookSettings
 from .scene_validation.PropertyGroups import USD_PG_ValidatorSettings
 from .generated_classes import CLASSES
+from .project.asset_types import AssetType
 
 
 @bpy.app.handlers.persistent
@@ -13,10 +14,10 @@ def export_usd_on_save(dummy):
         return
 
     scene = bpy.context.scene
-    asset_type = scene.export_hook_settings.usd_asset_type
+    asset_type = AssetType.of(bpy.context)
     
     # generates preview for assets
-    if asset_type == 'props':
+    if asset_type is AssetType.PROPS:
         for col in bpy.data.collections:
                 if col.asset_data is not None:
                     col.asset_generate_preview()
