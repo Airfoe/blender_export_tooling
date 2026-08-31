@@ -2,7 +2,7 @@
 
 # How to Install:
 In Blender, add a remote repository with this URL:
-`extensions.airfoe.com`
+`https://extensions.airfoe.com`
 Then look for Airfoe Blender Tooling, and download from there.
 
 ## Configuration
