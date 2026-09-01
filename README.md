@@ -25,6 +25,9 @@ This will move your selected objects to a seperate Blend file, and link it back 
 - a high poly collection
 - the Parent Class of the Unreal Engine Blueprint
 
+When creating an Asset Manually via the "Set as Asset" Button, please ensure to add a collection with a name that matches the name of the Asset. 
+
+
 ## Collider Tools:
 ### Make Collider Objects:
 Uses Unreal Engines UCX to parent selected objects to the active one and mark them as collider. This assumes that the selected objects are already convex.
